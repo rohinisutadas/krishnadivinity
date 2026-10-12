@@ -7,3 +7,4 @@ outputs/
 *.zip
 *.jpg
 *.png
+!krishna_divinity_site/assets/**
