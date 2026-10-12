@@ -63,7 +63,7 @@ form.addEventListener('submit',async event=>{
     const response=await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(input),signal:AbortSignal.timeout(20000)});
     let result;try {result=await response.json();} catch {throw new Error('Registration could not be confirmed. Please try again.');}
     if(!response.ok || !result.ok) {showErrors(result.error || 'Please try again.',result.fields);return;}
-    const receipt={...result.receipt,demo:form.dataset.demo==='true'};
+    const receipt={...result.receipt,fullName:input.full_name,email:input.email,whatsapp:input.whatsapp,demo:form.dataset.demo==='true'};
     try { sessionStorage.setItem('kd_receipt',JSON.stringify(receipt)); } catch {
       availability.textContent=`Registration saved. Reference: ${receipt.registrationId}. No payment was collected.`;
       form.reset();enabled=false;fields.disabled=true;return;

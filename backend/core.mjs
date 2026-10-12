@@ -60,3 +60,30 @@ export function registrationMutation(data, db, now, id) {
 export function receiptFor(r) {
   return {registrationId:r.registration_id,plan:r.plan,status:r.status,amountDue:Number(r.amount_due_inr)};
 }
+export function paymentMutation(data, db, now, id) {
+  const reg = db.Registrations.find(r => r.registration_id === data.registration_id);
+  if (!reg) throw new Error('registration_not_found');
+  const existing = db.Payments.find(p => p.provider_payment_id === data.provider_payment_id);
+  if (existing) return { rows: [], confirmed: true, paymentReference: existing.payment_reference };
+  const paymentRef = 'PAY-' + id();
+  const paymentRecord = {
+    payment_reference: paymentRef,
+    registration_id: data.registration_id,
+    provider_order_id: data.provider_order_id || '',
+    provider_payment_id: data.provider_payment_id,
+    amount_inr: Number(data.amount_inr),
+    currency: 'INR',
+    status: 'captured',
+    paid_at: now.toISOString(),
+    refund_amount_inr: '',
+    refunded_at: ''
+  };
+  reg.status = 'confirmed';
+  if (reg.recordings_access === 'pending') reg.recordings_access = 'active';
+  return {
+    rows: [{ sheet: 'Payments', record: paymentRecord }],
+    updateRegistration: { registration_id: reg.registration_id, status: 'confirmed', recordings_access: reg.recordings_access },
+    confirmed: true,
+    paymentReference: paymentRef
+  };
+}

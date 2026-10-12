@@ -14,8 +14,7 @@ function doPost(e) {
     if (!text || text.length>12000) return output_({ok:false});
     var payload = JSON.parse(text);
     if (!secret || secret.length<32 || payload.secret!==secret) return output_({ok:false});
-    var validated = validate(Object.assign({},payload.registration,{consent:true}));
-    if (Object.keys(validated.errors).length) return output_({ok:false});
+
     if (!lock.tryLock(10000)) return output_({ok:false,error:'busy'});
     var book = SpreadsheetApp.openById(settings.getProperty('SPREADSHEET_ID'));
     var db = {}, ids = {};
@@ -29,6 +28,37 @@ function doPost(e) {
         var record={}; SCHEMA[name].forEach(function(key,i){record[key]=row[i] || '';}); return record;
       });
     });
+
+    if (payload.payment) {
+      if (!payload.payment.registration_id || !payload.payment.provider_payment_id) return output_({ok:false,error:'invalid_payment'});
+      var payMutation = paymentMutation(payload.payment, db, new Date(), function(){ return Utilities.getUuid(); });
+      var regRowIdx = -1;
+      for (var r = 0; r < db.Registrations.length; r++) {
+        if (db.Registrations[r].registration_id === payload.payment.registration_id) {
+          regRowIdx = r;
+          break;
+        }
+      }
+      if (regRowIdx === -1) throw new Error('registration_not_found');
+      var regSheet = book.getSheetByName('Registrations');
+      regSheet.getRange(regRowIdx + 2, 9).setValue('confirmed');
+      if (payMutation.updateRegistration && payMutation.updateRegistration.recordings_access === 'active') {
+        regSheet.getRange(regRowIdx + 2, 11).setValue('active');
+      }
+      if (payMutation.rows.length) {
+        var payRequests = payMutation.rows.map(function(row){
+          return {appendCells:{sheetId:ids[row.sheet],rows:[{values:SCHEMA[row.sheet].map(function(key){
+            var val = row.record[key];
+            return {userEnteredValue:typeof val==='number'?{numberValue:val}:{stringValue:String(val == null?'':val)}};
+          })}],fields:'userEnteredValue'}};
+        });
+        Sheets.Spreadsheets.batchUpdate({requests:payRequests}, book.getId());
+      }
+      return output_({ok:true,confirmed:true,paymentReference:payMutation.paymentReference});
+    }
+
+    var validated = validate(Object.assign({},payload.registration,{consent:true}));
+    if (Object.keys(validated.errors).length) return output_({ok:false});
     var mutation = registrationMutation(validated.data,db,new Date(),function(){return Utilities.getUuid();});
     if (mutation.rows.length) {
       // One atomic Sheets batch: both student and registration are saved, or neither is.

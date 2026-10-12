@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
-import {SCHEMA,validate,registrationMutation,selectBatch} from '../backend/core.mjs';
+import {SCHEMA,validate,registrationMutation,selectBatch,paymentMutation} from '../backend/core.mjs';
 import {createHandler} from '../netlify/functions/register.mjs';
 const now=new Date('2026-10-11T12:00:00Z');
 const input={full_name:'Test Student',email:'test@example.com',whatsapp:'+919876543210',city:'Test City',date_of_birth:'',consent:true,plan:'ai-live',request_id:'test-request-123456'};
@@ -81,4 +81,55 @@ test('Apps Script authenticates, locks, and writes both rows in one atomic call 
   assert.equal(invoke(env.REGISTRATION_SECRET).ok,true);assert.equal(writes.length,1);assert.equal(writes[0].requests.length,2);
   assert.equal(writes[0].requests[0].appendCells.rows[0].values[1].userEnteredValue.stringValue,'=IMPORTXML("evil")');
   assert.equal(locked,false);
+});
+test('payment mutation updates registration to confirmed and appends payment record safely',()=>{
+  const db=empty();
+  db.Registrations=[{registration_id:'REG-1',student_id:'ST-1',course:'gita',plan:'gita-complete',status:'pending_payment',recordings_access:'pending'}];
+  const payData={registration_id:'REG-1',provider_order_id:'order_123',provider_payment_id:'pay_123',amount_inr:108};
+  const mutation=paymentMutation(payData,db,now,id);
+  assert.equal(mutation.confirmed,true);
+  assert.equal(db.Registrations[0].status,'confirmed');
+  assert.equal(db.Registrations[0].recordings_access,'active');
+  assert.equal(mutation.rows.length,1);
+  assert.equal(mutation.rows[0].sheet,'Payments');
+  assert.equal(mutation.rows[0].record.provider_payment_id,'pay_123');
+  db.Payments.push(mutation.rows[0].record);
+  const dup=paymentMutation(payData,db,now,id);
+  assert.equal(dup.confirmed,true);
+  assert.equal(dup.rows.length,0);
+});
+test('create-order and verify-payment handlers enforce security, signature check and Apps Script forwarding',async()=>{
+  const {createOrderHandler}=await import('../netlify/functions/create-order.mjs');
+  const {verifyPaymentHandler}=await import('../netlify/functions/verify-payment.mjs');
+  const payEnv={...env,RAZORPAY_KEY_ID:'rzp_test_123',RAZORPAY_KEY_SECRET:'secret_1234567890'};
+  const origin='https://example.com';
+  
+  // Create order
+  let orderCalled=false;
+  const mockFetcher=async(url,opts)=>{
+    orderCalled=true;
+    assert.ok(url.includes('api.razorpay.com'));
+    return new Response(JSON.stringify({id:'order_abc123',amount:10800,currency:'INR'}));
+  };
+  const orderHandler=createOrderHandler({env:payEnv,fetcher:mockFetcher});
+  const orderReq=new Request('https://example.com/api/create-order',{method:'POST',headers:{Origin:origin,'Content-Type':'application/json'},body:JSON.stringify({registrationId:'REG-test-123456',plan:'gita-complete'})});
+  const orderRes=await orderHandler(orderReq);
+  assert.equal(orderRes.status,200);
+  const orderJson=await orderRes.json();
+  assert.equal(orderJson.orderId,'order_abc123');
+  assert.equal(orderJson.amount,10800);
+  assert.ok(orderCalled);
+
+  // Verify signature - invalid signature rejected
+  const crypto=await import('node:crypto');
+  const verifyHandler=verifyPaymentHandler({env:payEnv,fetcher:async()=>new Response(JSON.stringify({ok:true,paymentReference:'PAY-1'}))});
+  const badReq=new Request('https://example.com/api/verify-payment',{method:'POST',headers:{Origin:origin,'Content-Type':'application/json'},body:JSON.stringify({razorpay_order_id:'order_abc123',razorpay_payment_id:'pay_xyz123',razorpay_signature:'bad_sig',registrationId:'REG-test-123456',plan:'gita-complete'})});
+  assert.equal((await verifyHandler(badReq)).status,400);
+
+  // Verify signature - valid signature accepted and forwarded
+  const validSig=crypto.createHmac('sha256','secret_1234567890').update('order_abc123|pay_xyz123').digest('hex');
+  const goodReq=new Request('https://example.com/api/verify-payment',{method:'POST',headers:{Origin:origin,'Content-Type':'application/json'},body:JSON.stringify({razorpay_order_id:'order_abc123',razorpay_payment_id:'pay_xyz123',razorpay_signature:validSig,registrationId:'REG-test-123456',plan:'gita-complete'})});
+  const goodRes=await verifyHandler(goodReq);
+  assert.equal(goodRes.status,200);
+  assert.equal((await goodRes.json()).confirmed,true);
 });
