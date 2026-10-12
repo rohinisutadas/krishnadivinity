@@ -1,0 +1,12 @@
+{
+  "name": "krishna-divinity-website",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node tools/dev-server.mjs",
+    "demo": "node tools/dev-server.mjs --demo",
+    "test": "node --test tests/*.test.mjs",
+    "build": "node tools/build.mjs"
+  },
+  "engines": { "node": ">=22" }
+}
