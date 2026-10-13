@@ -3,7 +3,10 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {randomUUID} from 'node:crypto';
+try { process.loadEnvFile?.(path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../.env')); } catch {}
 import {createHandler} from '../netlify/functions/register.mjs';
+import {createOrderHandler} from '../netlify/functions/create-order.mjs';
+import {verifyPaymentHandler} from '../netlify/functions/verify-payment.mjs';
 import {SCHEMA,validate,registrationMutation} from '../backend/core.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../krishna_divinity_site');
 const demo=process.argv.includes('--demo');
@@ -11,6 +14,8 @@ const db=Object.fromEntries(Object.keys(SCHEMA).map(k=>[k,[]]));
 const date=new Date(Date.now()+86400000*30).toISOString();
 db.Batches=[{batch_id:'DEMO-GITA',course:'gita',start_at:date,capacity:20,status:'open'},{batch_id:'DEMO-AI',course:'ai',start_at:date,capacity:20,status:'open'}];
 const handler=createHandler();
+const orderHandler=createOrderHandler();
+const verifyHandler=verifyPaymentHandler();
 const types={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.js':'text/javascript; charset=utf-8','.txt':'text/plain; charset=utf-8'};
 http.createServer(async(req,res)=>{
   try {
@@ -35,6 +40,12 @@ http.createServer(async(req,res)=>{
         }
         response=new Response(JSON.stringify(result),{status,headers:{'Content-Type':'application/json','Cache-Control':'no-store'}});
       } else response=await handler(new Request(url,{method:req.method,headers:req.headers,...(['GET','HEAD'].includes(req.method)?{}:{body:raw})}));
+      res.writeHead(response.status,Object.fromEntries(response.headers));res.end(await response.text());return;
+    }
+    if(url.pathname==='/api/create-order' || url.pathname==='/api/verify-payment') {
+      let raw='';for await(const chunk of req) {raw+=chunk;if(Buffer.byteLength(raw)>8192){res.writeHead(413);res.end();return;}}
+      const fn = url.pathname==='/api/create-order' ? orderHandler : verifyHandler;
+      const response = await fn(new Request(url,{method:req.method,headers:req.headers,...(['GET','HEAD'].includes(req.method)?{}:{body:raw})}));
       res.writeHead(response.status,Object.fromEntries(response.headers));res.end(await response.text());return;
     }
     const requested=decodeURIComponent(url.pathname)==='/'?'index.html':decodeURIComponent(url.pathname).replace(/^\//,'');
