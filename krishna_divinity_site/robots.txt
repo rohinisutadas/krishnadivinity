@@ -1,2 +1,5 @@
 User-agent: *
-Disallow: /
+Allow: /
+Disallow: /registration-success.html
+
+Sitemap: https://krishnadivinity.netlify.app/sitemap.xml
