@@ -13,7 +13,9 @@ const json = (data, status = 200) => new Response(JSON.stringify(data), {
 export function verifyPaymentHandler({env = process.env, fetcher = fetch} = {}) {
   return async request => {
     if (request.method !== 'POST') return json({error: 'Method not allowed.'}, 405);
-    const origins = (env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
+    const defaultOrigins = ['https://krishnadivinity.in','https://www.krishnadivinity.in','https://krishnadivinity.netlify.app','https://luminous-mousse-726864.netlify.app','http://127.0.0.1:4174'];
+    const envOrigins = (env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
+    const origins = Array.from(new Set([...defaultOrigins, ...envOrigins]));
     if (!origins.includes(request.headers.get('origin'))) return json({error: 'Please submit from the course website.'}, 403);
 
     const keySecret = env.RAZORPAY_KEY_SECRET;

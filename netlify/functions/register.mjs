@@ -6,7 +6,9 @@ export function createHandler({env=process.env,fetcher=fetch}={}) {
     const configured = env.REGISTRATION_ENABLED==='true' && /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(env.GOOGLE_SCRIPT_URL || '') && (env.REGISTRATION_SECRET || '').length>=32;
     if (request.method==='GET') return json({enabled:!!configured});
     if (request.method!=='POST') return json({error:'Method not allowed.'},405);
-    const origins = (env.ALLOWED_ORIGINS || '').split(',').map(s=>s.trim()).filter(Boolean);
+    const defaultOrigins = ['https://krishnadivinity.in','https://www.krishnadivinity.in','https://krishnadivinity.netlify.app','https://luminous-mousse-726864.netlify.app','http://127.0.0.1:4174'];
+    const envOrigins = (env.ALLOWED_ORIGINS || '').split(',').map(s=>s.trim()).filter(Boolean);
+    const origins = Array.from(new Set([...defaultOrigins, ...envOrigins]));
     if (!origins.includes(request.headers.get('origin'))) return json({error:'Please submit from the course website.'},403);
     if (!configured) return json({error:'Registrations are not open yet. Please return later.'},503);
     if (!request.headers.get('content-type')?.startsWith('application/json')) return json({error:'JSON required.'},415);
