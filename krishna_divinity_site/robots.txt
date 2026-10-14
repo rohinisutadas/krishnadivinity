@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /registration-success.html
 
-Sitemap: https://krishnadivinity.netlify.app/sitemap.xml
+Sitemap: https://krishnadivinity.in/sitemap.xml
