@@ -155,6 +155,23 @@ window.KD_COURSES = {
             ]
           }
         ]
+      },
+      {
+        moduleName: "Chapter 5: Karma Sannyasa Yoga",
+        moduleNumber: "5",
+        lessons: [
+          {
+            id: "gita-5-1",
+            classNo: "5.1",
+            title: "5.1: Action in Devotion & The Lotus Leaf Analogy",
+            duration: "55 mins",
+            description: "Understanding karma-sannyasa vs karma-yoga. Performing action without attachment like a lotus leaf untouched by water (padma-patram ivambhasa), and the Peace Formula (5.29).",
+            youtube: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+            pdfs: [
+              { url: "https://drive.google.com/file/d/1TqkNKwf8jLSxxYgzjcS0D-uGLpTdVkeM/view?usp=sharing", label: "PDF 1: Chapter 5 Karma Sannyasa Notes" }
+            ]
+          }
+        ]
       }
     ]
   },
