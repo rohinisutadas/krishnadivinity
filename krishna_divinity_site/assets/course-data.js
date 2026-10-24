@@ -96,27 +96,63 @@ window.KD_COURSES = {
       },
       {
         moduleName: "Chapter 3: Karma Yoga",
+        moduleNumber: "3",
+        lessons: [
+          {
+            id: "gita-3-1",
+            classNo: "3.1",
+            title: "3.1: Action in Krishna Consciousness vs Renunciation",
+            duration: "52 mins",
+            description: "Why action in devotion is superior to premature renunciation. Performing prescribed duties without attachment.",
+            youtube: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+            pdfs: [
+              { url: "https://drive.google.com/", label: "PDF 1: Chapter 3 Overview Notes" },
+              { url: "https://drive.google.com/", label: "PDF 2: Yajna & Karma Cycle Chart" },
+              { url: "https://drive.google.com/", label: "PDF 3: Daily Duty Worksheet" }
+            ]
+          },
+          {
+            id: "gita-3-2",
+            classNo: "3.2",
+            title: "3.2: Conquering Lust — The Supreme Enemy",
+            duration: "50 mins",
+            description: "Understanding how kama (lust) covers the soul and using spiritual intelligence to regulate senses.",
+            youtube: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+            pdfs: [
+              { url: "https://drive.google.com/", label: "PDF 1: Lust vs Love Summary Notes" },
+              { url: "https://drive.google.com/", label: "PDF 2: Mind & Sense Control Guide" }
+            ]
+          }
+        ]
+      },
+      {
+        moduleName: "Chapter 4: Transcendental Knowledge",
         moduleNumber: "4",
         lessons: [
           {
             id: "gita-4-1",
             classNo: "4.1",
-            title: "4.1: Action in Krishna Consciousness vs Renunciation",
+            title: "4.1: The History & Purpose of Krishna's Appearance",
             duration: "52 mins",
-            description: "Why action in devotion is superior to premature renunciation. Performing prescribed duties without attachment.",
+            description: "Yada yada hi dharmasya: Disciplic succession (parampara), and the divine nature of Krishna's appearance (janma karma ca me divyam).",
             youtube: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-            pdf: "https://drive.google.com/",
-            pdfLabel: "Download 4.1 Study Notes (PDF)"
+            pdfs: [
+              { url: "https://drive.google.com/", label: "PDF 1: Chapter 4 Study Notes" },
+              { url: "https://drive.google.com/", label: "PDF 2: Parampara Lineage Tree" },
+              { url: "https://drive.google.com/", label: "PDF 3: Key Sanskrit Shlokas" }
+            ]
           },
           {
             id: "gita-4-2",
             classNo: "4.2",
-            title: "4.2: Conquering Lust — The Supreme Enemy",
-            duration: "50 mins",
-            description: "Understanding how kama (lust) covers the soul and using spiritual intelligence to regulate senses.",
+            title: "4.2: Approaching a Guru & The Fire of Knowledge",
+            duration: "48 mins",
+            description: "Tad viddhi pranipatena: Inquiring submissively from the spiritual master. How the fire of transcendental knowledge burns all reactions.",
             youtube: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-            pdf: "https://drive.google.com/",
-            pdfLabel: "Download 4.2 Karma Yoga Summary (PDF)"
+            pdfs: [
+              { url: "https://drive.google.com/", label: "PDF 1: Qualifications of Guru & Disciple" },
+              { url: "https://drive.google.com/", label: "PDF 2: Sacrifice of Knowledge Summary" }
+            ]
           }
         ]
       }
