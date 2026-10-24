@@ -1,6 +1,69 @@
 // Core.gs is generated from backend/core.mjs by npm run build.
-function doGet() {
-  return output_({ok:false,error:'Use the registration website.'});
+function doGet(e) {
+  var action = (e && e.parameter && e.parameter.action) || '';
+  var course = (e && e.parameter && e.parameter.course) || '';
+  if (action === 'getLessons' || course) {
+    try {
+      var book = null;
+      try { book = SpreadsheetApp.getActiveSpreadsheet(); } catch(err) {}
+      if (!book) {
+        var settings = PropertiesService.getScriptProperties();
+        var sheetId = (settings && settings.getProperty('SPREADSHEET_ID')) || '1PgupS-wlHJcqDAsP8HskS9YMysHL2Mqf8yyy2QAK3dA';
+        book = SpreadsheetApp.openById(sheetId);
+      }
+      var sheet = book.getSheetByName('Lessons');
+      if (!sheet) return output_({ok:true, lessons:[]});
+      var data = sheet.getDataRange().getValues();
+      if (data.length <= 1) return output_({ok:true, lessons:[]});
+
+      var headers = (data[0] || []).map(function(h) {
+        return String(h || '').trim().toLowerCase().replace(/[\s_-]+/g, '');
+      });
+      function getCol(row, colName, fallbackIdx) {
+        var idx = headers.indexOf(colName);
+        if (idx >= 0 && row[idx] !== undefined && row[idx] !== null) return String(row[idx]).trim();
+        if (fallbackIdx !== undefined && row[fallbackIdx] !== undefined && row[fallbackIdx] !== null) return String(row[fallbackIdx]).trim();
+        return '';
+      }
+
+      var lessons = [];
+      for (var i = 1; i < data.length; i++) {
+        var row = data[i];
+        if (!row[0]) continue;
+        var rowCourse = getCol(row, 'course', 0);
+        if (!course || rowCourse.toLowerCase() === course.toLowerCase()) {
+          var p1 = getCol(row, 'pdf1') || getCol(row, 'pdf') || getCol(row, 'pdfurl1') || getCol(row, 'pdfurl', 5);
+          var p1Label = getCol(row, 'pdflabel1') || getCol(row, 'pdflabel') || 'PDF 1: Class Notes';
+          var p2 = getCol(row, 'pdf2') || getCol(row, 'pdfurl2');
+          var p2Label = getCol(row, 'pdflabel2') || 'PDF 2: Practice Material';
+          var p3 = getCol(row, 'pdf3') || getCol(row, 'pdfurl3');
+          var p3Label = getCol(row, 'pdflabel3') || 'PDF 3: Reference Guide';
+
+          var pdfList = [];
+          if (p1) pdfList.push({ url: p1, label: p1Label });
+          if (p2) pdfList.push({ url: p2, label: p2Label });
+          if (p3) pdfList.push({ url: p3, label: p3Label });
+
+          lessons.push({
+            course: rowCourse,
+            module: getCol(row, 'module', 1) || 'General',
+            classNo: getCol(row, 'classno') || getCol(row, 'class', 2) || String(i),
+            title: getCol(row, 'title', 3) || ('Class ' + i),
+            youtube: getCol(row, 'youtube') || getCol(row, 'youtubeurl', 4),
+            duration: getCol(row, 'duration', 6),
+            description: getCol(row, 'description') || getCol(row, 'desc'),
+            pdf: p1,
+            pdfLabel: p1Label,
+            pdfs: pdfList
+          });
+        }
+      }
+      return output_({ok:true, lessons:lessons});
+    } catch(err) {
+      return output_({ok:false, error:err.toString()});
+    }
+  }
+  return output_({ok:false, error:'Use the registration website.'});
 }
 function output_(data) {
   return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON);
@@ -113,7 +176,9 @@ function sendConfirmationEmail_(student, reg, batch, payment) {
   var amountPaid = payment.amount_inr || planDetails.price || 108;
   var paymentId = payment.provider_payment_id || '';
   var regRef = reg.registration_id || '';
+  var telegramGroupLink = 'https://t.me/+zrMP1VqfFBQzNjE1';
   var waGroupLink = 'https://chat.whatsapp.com/HS3jV1CPnwZ8O8yuKcmyR7';
+  var portalLink = 'https://krishnadivinity.in/portal.html';
   var supportNo = '+917356052212';
   var waSupportLink = 'https://wa.me/917356052212';
 
@@ -135,6 +200,7 @@ function sendConfirmationEmail_(student, reg, batch, payment) {
     + '      <h3 style="margin:0 0 12px;color:#92400e;font-size:16px;border-bottom:1px solid #fef08a;padding-bottom:8px;">📋 Batch & Enrollment Details</h3>'
     + '      <table style="width:100%;border-collapse:collapse;font-size:14px;">'
     + '        <tr><td style="padding:6px 0;color:#6b7280;width:38%;">Course:</td><td style="padding:6px 0;font-weight:600;color:#111827;">' + courseName + '</td></tr>'
+    + '        <tr><td style="padding:6px 0;color:#6b7280;">Validity:</td><td style="padding:6px 0;font-weight:600;color:#b45309;">' + (planDetails.validityLabel || 'Lifetime Access') + '</td></tr>'
     + '        <tr><td style="padding:6px 0;color:#6b7280;">Batch ID:</td><td style="padding:6px 0;font-weight:600;color:#111827;">' + batchId + '</td></tr>'
     + '        <tr><td style="padding:6px 0;color:#6b7280;">Start Date & Time:</td><td style="padding:6px 0;font-weight:600;color:#b45309;">' + batchTiming + '</td></tr>'
     + '        <tr><td style="padding:6px 0;color:#6b7280;">Instructor:</td><td style="padding:6px 0;color:#111827;">' + instructor + '</td></tr>'
@@ -144,10 +210,15 @@ function sendConfirmationEmail_(student, reg, batch, payment) {
     + '        <tr><td style="padding:6px 0;color:#6b7280;">Registration Ref:</td><td style="padding:6px 0;font-family:monospace;color:#4b5563;">' + regRef + '</td></tr>'
     + '      </table>'
     + '    </div>'
-    + '    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:20px;margin:24px 0;text-align:center;">'
-    + '      <h3 style="margin:0 0 8px;color:#166534;font-size:16px;">📲 Next Step: Join Your Batch WhatsApp Group</h3>'
-    + '      <p style="margin:0 0 16px;font-size:14px;color:#15803d;">Live Zoom class links, session reminders, and lesson notes are shared in the group.</p>'
-    + '      <a href="' + waGroupLink + '" style="display:inline-block;background:#16a34a;color:#ffffff;text-decoration:none;padding:12px 26px;border-radius:6px;font-weight:600;font-size:15px;box-shadow:0 2px 4px rgba(22,163,74,0.3);">💬 Join Batch WhatsApp Community</a>'
+    + '    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:20px;margin:20px 0;text-align:center;">'
+    + '      <h3 style="margin:0 0 8px;color:#1e40af;font-size:16px;">🎓 Access Your Course Videos & PDF Notes</h3>'
+    + '      <p style="margin:0 0 14px;font-size:14px;color:#1e3a8a;">Watch recorded lectures and download PDF learning notes anytime.</p>'
+    + '      <a href="' + portalLink + '" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 26px;border-radius:6px;font-weight:600;font-size:15px;box-shadow:0 2px 4px rgba(37,99,235,0.3);">▶ Open Student Portal</a>'
+    + '    </div>'
+    + '    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:20px;margin:20px 0;text-align:center;">'
+    + '      <h3 style="margin:0 0 8px;color:#166534;font-size:16px;">📲 Join Our Official Telegram Supergroup</h3>'
+    + '      <p style="margin:0 0 14px;font-size:14px;color:#15803d;">Live Zoom class links, reminders, and Q&A are shared in the Telegram community.</p>'
+    + '      <a href="' + telegramGroupLink + '" style="display:inline-block;background:#0284c7;color:#ffffff;text-decoration:none;padding:12px 26px;border-radius:6px;font-weight:600;font-size:15px;box-shadow:0 2px 4px rgba(2,132,199,0.3);">✈ Join Telegram Community</a>'
     + '    </div>'
     + '    <div style="margin-top:24px;border-top:1px solid #e5e7eb;padding-top:16px;font-size:14px;color:#6b7280;">'
     + '      <p style="margin:0 0 8px;"><strong>📞 Need Help or Batch Transfer?</strong></p>'
@@ -163,15 +234,19 @@ function sendConfirmationEmail_(student, reg, batch, payment) {
     + 'Your payment for ' + courseName + ' has been received and your seat is confirmed.\n\n'
     + '--- BATCH & ENROLLMENT DETAILS ---\n'
     + 'Course: ' + courseName + '\n'
+    + 'Validity: ' + (planDetails.validityLabel || 'Lifetime Access') + '\n'
     + 'Batch ID: ' + batchId + '\n'
     + 'Start Date & Time: ' + batchTiming + '\n'
     + 'Instructor: ' + instructor + '\n'
     + 'Amount Paid: ₹' + amountPaid + ' (Confirmed)\n'
     + 'Payment ID: ' + paymentId + '\n'
     + 'Registration Reference: ' + regRef + '\n\n'
-    + '--- NEXT STEP: JOIN BATCH WHATSAPP GROUP ---\n'
-    + 'Join the batch WhatsApp group for Zoom links and materials:\n'
-    + waGroupLink + '\n\n'
+    + '--- STUDENT PORTAL ---\n'
+    + 'Access your course recordings & PDF notes:\n'
+    + portalLink + '\n\n'
+    + '--- JOIN TELEGRAM SUPERGROUP ---\n'
+    + 'Join our official Telegram community for Zoom links and class updates:\n'
+    + telegramGroupLink + '\n\n'
     + 'Support Phone / WhatsApp: ' + supportNo + ' (' + waSupportLink + ')\n\n'
     + 'Warm regards,\nKrishna Divinity Team';
 
@@ -182,5 +257,41 @@ function sendConfirmationEmail_(student, reg, batch, payment) {
     htmlBody: htmlBody,
     name: 'Krishna Divinity'
   });
+}
+
+/**
+ * One-click helper function to automatically create or format the 'Lessons' tab
+ * in your Google Spreadsheet with all required columns.
+ * Run this function from Apps Script Editor (Select 'setupLessonsSheet' -> Run).
+ */
+function setupLessonsSheet() {
+  var book = null;
+  try {
+    book = SpreadsheetApp.getActiveSpreadsheet();
+  } catch(e) {}
+  if (!book) {
+    var settings = PropertiesService.getScriptProperties();
+    var sheetId = (settings && settings.getProperty('SPREADSHEET_ID')) || '1PgupS-wlHJcqDAsP8HskS9YMysHL2Mqf8yyy2QAK3dA';
+    book = SpreadsheetApp.openById(sheetId);
+  }
+  var sheet = book.getSheetByName('Lessons');
+  if (!sheet) {
+    sheet = book.insertSheet('Lessons');
+  }
+  var headers = [
+    'course', 'module', 'class_no', 'title', 'youtube', 'duration', 'description',
+    'pdf_1', 'pdf_label_1', 'pdf_2', 'pdf_label_2', 'pdf_3', 'pdf_label_3'
+  ];
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers])
+    .setFontWeight('bold')
+    .setBackground('#dbeafe')
+    .setFontColor('#1e3a8a');
+  sheet.setFrozenRows(1);
+  for (var c = 1; c <= headers.length; c++) {
+    sheet.setColumnWidth(c, 160);
+  }
+  sheet.setColumnWidth(4, 250); // title
+  sheet.setColumnWidth(7, 280); // description
+  Logger.log('Lessons sheet created and formatted successfully!');
 }
 

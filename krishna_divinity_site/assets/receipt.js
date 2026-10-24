@@ -2,9 +2,23 @@ let receipt;
 try { receipt = JSON.parse(sessionStorage.getItem('kd_receipt')); } catch {}
 
 const names = {
-  'gita-complete': 'Gita Foundation Course',
-  'ai-live': 'AI Live Classes',
-  'ai-complete': 'AI Live + Recorded Course'
+  'gita-lifetime': 'Bhagavad Gita Foundation Course (Lifetime Access)',
+  'ai-3m': 'Practical AI Course (3 Months Access)',
+  'ai-1y': 'Practical AI Course (1 Year Access)',
+  'ai-lifetime': 'Practical AI Course (Lifetime Access)',
+  'gita-complete': 'Bhagavad Gita Foundation Course (Lifetime Access)',
+  'ai-live': 'Practical AI Course (3 Months Access)',
+  'ai-complete': 'Practical AI Course (Lifetime Access)'
+};
+
+const planPrices = {
+  'gita-lifetime': 108,
+  'ai-3m': 108,
+  'ai-1y': 500,
+  'ai-lifetime': 1080,
+  'gita-complete': 108,
+  'ai-live': 108,
+  'ai-complete': 1080
 };
 
 const titleEl = document.querySelector('#receipt-title');
@@ -18,18 +32,25 @@ const payConfirmedBox = document.querySelector('#payment-confirmed-box');
 const payBtn = document.querySelector('#pay-button');
 const payStatusEl = document.querySelector('#payment-status');
 const paymentIdEl = document.querySelector('#payment-id-display');
+const classroomEnterBtn = document.querySelector('#classroom-enter-btn');
 
 if (!receipt || !/^REG-[\w-]+$/.test(receipt.registrationId) || !names[receipt.plan]) {
   titleEl.textContent = 'Registration Status';
-  msgEl.textContent = 'No registration receipt is available in this browser. Please submit the registration form first.';
+  msgEl.textContent = 'No registration receipt is available in this browser. Please select a course to begin.';
 } else {
   detailsEl.hidden = false;
   titleEl.textContent = receipt.status === 'confirmed' ? 'Enrollment Confirmed' : 'Registration Received';
   refEl.textContent = 'Registration Reference: ' + receipt.registrationId;
-  planEl.textContent = names[receipt.plan];
+  planEl.textContent = names[receipt.plan] || receipt.plan;
   
-  const amount = Number(receipt.amountDue) || (receipt.plan === 'ai-complete' ? 1080 : 108);
+  const amount = Number(receipt.amountDue) || planPrices[receipt.plan] || 108;
   if (amountTagEl) amountTagEl.innerHTML = `<span class="badge" style="font-size:16px;background:#fef3c7;color:#92400e;padding:6px 14px;">₹${amount}</span>`;
+
+  const isAi = receipt.plan?.startsWith('ai');
+  const targetCourse = isAi ? 'ai' : 'gita';
+  if (classroomEnterBtn) {
+    classroomEnterBtn.href = `classroom.html?course=${targetCourse}`;
+  }
 
   if (receipt.status === 'confirmed') {
     showPaymentSuccess(receipt.paymentId || 'Verified');
@@ -37,7 +58,7 @@ if (!receipt || !/^REG-[\w-]+$/.test(receipt.registrationId) || !names[receipt.p
     msgEl.textContent = 'Your details have been saved to the waiting list for the next batch. You will receive an update once a batch opens.';
     payPendingBox.hidden = true;
   } else {
-    msgEl.textContent = 'Your registration has been saved! Complete your payment below to secure your seat.';
+    msgEl.textContent = 'Your registration has been saved! Complete your payment below to immediately unlock your course.';
     payBtn.textContent = `Pay ₹${amount} Online (UPI, Cards, NetBanking)`;
     setupPaymentHandler(amount);
   }
@@ -45,12 +66,36 @@ if (!receipt || !/^REG-[\w-]+$/.test(receipt.registrationId) || !names[receipt.p
 
 function showPaymentSuccess(paymentId) {
   titleEl.textContent = 'Enrollment Confirmed 🎉';
-  msgEl.textContent = 'Hare Krishna! Your payment has been received and your batch seat is officially confirmed.';
+  msgEl.textContent = 'Hare Krishna! Your payment has been received and your course access is fully unlocked.';
   payPendingBox.hidden = true;
   payConfirmedBox.hidden = false;
   if (paymentIdEl && paymentId) {
     paymentIdEl.textContent = 'Payment ID: ' + paymentId;
   }
+
+  // Update student session in localStorage
+  try {
+    const isAi = receipt.plan?.startsWith('ai');
+    const studentSession = {
+      fullName: receipt.fullName || 'Seeker',
+      email: receipt.email || '',
+      whatsapp: receipt.whatsapp || '',
+      enrolledCourses: [{
+        courseId: isAi ? 'ai' : 'gita',
+        courseName: isAi ? 'Practical AI Course' : 'Bhagavad Gita Foundation Course',
+        plan: receipt.plan,
+        validity: receipt.validity || 'lifetime',
+        validUntil: receipt.validUntil || (receipt.plan === 'ai-3m' ? calculateFutureDate(90) : (receipt.plan === 'ai-1y' ? calculateFutureDate(365) : 'lifetime'))
+      }]
+    };
+    localStorage.setItem('kd_student_session', JSON.stringify(studentSession));
+  } catch {}
+}
+
+function calculateFutureDate(days) {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
 }
 
 function setupPaymentHandler(amount) {
@@ -86,7 +131,7 @@ function setupPaymentHandler(amount) {
           email: receipt.email || '',
           contact: receipt.whatsapp || ''
         },
-        theme: { color: '#b48325' },
+        theme: { color: '#b45309' },
         modal: {
           ondismiss: function () {
             payBtn.disabled = false;

@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Classroom | Krishna Divinity</title>
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
+  <link rel="stylesheet" href="assets/styles.css?v=2">
+  <script src="assets/course-data.js?v=2"></script>
+  <style>
+    body { background-color: #f8fafc; margin: 0; padding: 0; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+    .classroom-navbar { background: #ffffff; border-bottom: 1px solid #e2e8f0; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; }
+    .classroom-layout { display: grid; grid-template-columns: 1fr 380px; min-height: calc(100vh - 65px); }
+    @media (max-width: 960px) {
+      .classroom-layout { grid-template-columns: 1fr; }
+    }
+    .video-area { padding: 20px; max-width: 900px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+    .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 12px; background: #0f172a; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+    .video-info { margin-top: 18px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 22px; }
+    .playlist-sidebar { background: #ffffff; border-left: 1px solid #e2e8f0; padding: 20px 16px; overflow-y: auto; max-height: calc(100vh - 65px); }
+    
+    /* Collapsible Module Accordion */
+    .module-group { margin-bottom: 12px; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; background: #ffffff; }
+    .module-header { background: #f8fafc; padding: 12px 14px; font-weight: 700; font-size: 14px; color: #1e293b; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; border-bottom: 1px solid transparent; transition: background 0.15s; }
+    .module-header:hover { background: #f1f5f9; }
+    .module-header.expanded { border-bottom-color: #e2e8f0; background: #f1f5f9; }
+    .module-title-box { display: flex; align-items: center; gap: 8px; flex: 1; }
+    .module-arrow { font-size: 11px; color: #64748b; transition: transform 0.2s; }
+    .module-badge { font-size: 12px; color: #64748b; font-weight: 500; background: #e2e8f0; padding: 2px 8px; border-radius: 12px; }
+    .module-lessons { padding: 6px; }
+
+    .lesson-item { padding: 10px 12px; border-radius: 8px; border: 1px solid transparent; margin-bottom: 4px; cursor: pointer; transition: all 0.2s; display: flex; gap: 10px; align-items: flex-start; }
+    .lesson-item:hover { background: #f8fafc; border-color: #cbd5e1; }
+    .lesson-item.active { background: #fef3c7; border-color: #fde68a; }
+    .lesson-tag { background: #e2e8f0; color: #475569; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+    .lesson-item.active .lesson-tag { background: #b45309; color: #ffffff; }
+    
+    .btn-pdf { display: inline-flex; align-items: center; gap: 8px; background: #059669; color: #ffffff; text-decoration: none; padding: 9px 15px; border-radius: 8px; font-weight: 600; font-size: 13px; box-shadow: 0 2px 4px rgba(5,150,105,0.2); transition: all 0.2s; }
+    .btn-pdf:hover { background: #047857; color: #ffffff; transform: translateY(-1px); }
+    .btn-pdf-2 { background: #0284c7; box-shadow: 0 2px 4px rgba(2,132,199,0.2); }
+    .btn-pdf-2:hover { background: #0369a1; }
+    .btn-pdf-3 { background: #7c3aed; box-shadow: 0 2px 4px rgba(124,58,237,0.2); }
+    .btn-pdf-3:hover { background: #6d28d9; }
+    .btn-telegram-pill { background: #0284c7; color: #ffffff; padding: 6px 14px; border-radius: 20px; text-decoration: none; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+    .nav-arrow-btn { padding: 8px 16px; border: 1px solid #cbd5e1; background: #ffffff; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; }
+    .nav-arrow-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .player-controls-tip { display: flex; justify-content: space-between; align-items: center; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 8px 14px; margin-top: 10px; font-size: 13px; color: #1e40af; }
+  </style>
+</head>
+<body>
+  <!-- Top Bar -->
+  <div class="classroom-navbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <a href="portal.html" class="btn btn-light" style="padding:6px 12px;font-size:13px;">← Student Portal</a>
+      <span id="header-course-title" style="font-weight:700;font-size:16px;color:#1e293b;">Course Classroom</span>
+    </div>
+    <div>
+      <a href="https://t.me/+zrMP1VqfFBQzNjE1" target="_blank" rel="noopener" class="btn-telegram-pill">
+        ✈ Telegram Group
+      </a>
+    </div>
+  </div>
+
+  <!-- Main Classroom Layout -->
+  <div class="classroom-layout">
+    
+    <!-- Left: Video & Lesson Content -->
+    <div class="video-area">
+      
+      <!-- Video Player -->
+      <div class="video-container" id="player-wrapper">
+        <iframe id="video-frame" src="" title="Course Video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      </div>
+
+      <!-- Video Controls Tip (Speed & Quality) -->
+      <div class="player-controls-tip" id="player-tip">
+        <span>⚡ <strong>Speed & Quality (गति और क्वालिटी):</strong> Click the <strong>⚙️ (Settings)</strong> gear icon inside video player to change speed (1.5x, 2x) or video quality (360p, 480p).</span>
+      </div>
+
+      <!-- Lockout Screen (Shown only if expired) -->
+      <div id="lockout-screen" class="card" hidden style="padding:36px;text-align:center;background:#fff1f2;border:1px solid #fecdd3;">
+        <span style="font-size:42px;">⏳</span>
+        <h2 style="color:#9f1239;margin:12px 0 6px;">Course Validity Expired</h2>
+        <p class="lead" style="color:#881337;">Your course access period has ended. Please renew or upgrade your plan to continue watching classes.</p>
+        <div style="margin-top:20px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+          <a id="renew-1y-link" href="registration.html" class="btn btn-primary">Renew 1 Year — ₹500</a>
+          <a id="upgrade-life-link" href="registration.html" class="btn btn-light">Upgrade Lifetime — ₹1,080</a>
+        </div>
+      </div>
+
+      <!-- Video Details & PDF Download -->
+      <div class="video-info" id="video-info-box">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;">
+          <div>
+            <span class="badge" id="lesson-number-badge" style="background:#fef3c7;color:#92400e;">Topic</span>
+            <h1 id="lesson-title" style="font-size:22px;margin:8px 0 6px;color:#0f172a;">Loading class…</h1>
+            <p id="lesson-duration" class="note" style="margin:0 0 10px;"></p>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button id="prev-lesson-btn" class="nav-arrow-btn" onclick="prevLesson()">← Previous Class</button>
+            <button id="next-lesson-btn" class="nav-arrow-btn" onclick="nextLesson()">Next Class →</button>
+          </div>
+        </div>
+
+        <p id="lesson-desc" style="color:#334155;font-size:15px;line-height:1.6;margin:12px 0;"></p>
+
+        <!-- PDF Study Materials & Downloads (Up to 3 PDFs) -->
+        <div class="pdf-section" style="border-top:1px solid #e2e8f0;padding-top:16px;margin-top:16px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+            <strong style="font-size:14px;color:#0f172a;display:flex;align-items:center;gap:6px;">
+              <span>📚</span> Class Study Materials & PDFs (अध्ययन सामग्री):
+            </strong>
+            <span style="font-size:12px;color:#64748b;">(Click below to download/view on Google Drive)</span>
+          </div>
+          <div id="pdf-buttons-container" style="display:flex;flex-wrap:wrap;gap:10px;">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Right: Lessons Playlist Grouped by Collapsible Topic -->
+    <div class="playlist-sidebar">
+      <div style="margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <h3 style="margin:0 0 2px;font-size:16px;color:#0f172a;">Course Modules & Chapters</h3>
+          <p class="note" style="margin:0;font-size:12px;">Click a topic to view its classes.</p>
+        </div>
+        <button onclick="toggleAllModules()" id="toggle-all-btn" class="btn btn-light" style="padding:4px 8px;font-size:11px;">Expand All</button>
+      </div>
+
+      <div id="modules-container">
+        <!-- Topic Groups and Classes injected dynamically -->
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const courseId = params.get('course') || 'ai';
+    const courseData = window.KD_COURSES?.[courseId] || window.KD_COURSES?.ai;
+
+    let flatLessons = [];
+    let currentGlobalIndex = 0;
+    let allExpanded = false;
+
+    // Check validity
+    function checkValidity() {
+      let isExpired = false;
+      try {
+        const raw = localStorage.getItem('kd_student_session') || sessionStorage.getItem('kd_student_session');
+        if (raw) {
+          const session = JSON.parse(raw);
+          const enrolled = (session.enrolledCourses || []).find(c => c.courseId === courseId);
+          if (enrolled && enrolled.validUntil && enrolled.validUntil !== 'lifetime') {
+            const today = new Date().toISOString().slice(0, 10);
+            if (enrolled.validUntil < today) {
+              isExpired = true;
+            }
+          }
+        }
+      } catch {}
+
+      if (isExpired) {
+        document.getElementById('player-wrapper').hidden = true;
+        document.getElementById('player-tip').hidden = true;
+        document.getElementById('video-info-box').hidden = true;
+        document.getElementById('lockout-screen').hidden = false;
+        document.getElementById('renew-1y-link').href = `registration.html?course=${courseId}&plan=ai-1y`;
+        document.getElementById('upgrade-life-link').href = `registration.html?course=${courseId}&plan=ai-lifetime`;
+        return false;
+      }
+      return true;
+    }
+
+    function initClassroom() {
+      if (!courseData) return;
+      document.title = `${courseData.title} | Classroom`;
+      document.getElementById('header-course-title').textContent = courseData.title;
+
+      // Build flat lessons list for easy sequential next/prev
+      flatLessons = [];
+      const modules = courseData.modules || [];
+      modules.forEach((mod, modIdx) => {
+        (mod.lessons || []).forEach(les => {
+          flatLessons.push({
+            ...les,
+            moduleName: mod.moduleName,
+            moduleIndex: modIdx
+          });
+        });
+      });
+
+      renderModules(modules);
+      if (checkValidity() && flatLessons.length > 0) {
+        loadLessonByIndex(0);
+      }
+    }
+
+    function renderModules(modules) {
+      const container = document.getElementById('modules-container');
+      container.innerHTML = '';
+
+      let globalCounter = 0;
+
+      modules.forEach((mod, modIdx) => {
+        const group = document.createElement('div');
+        group.className = 'module-group';
+        group.id = `module-group-${modIdx}`;
+
+        const header = document.createElement('div');
+        header.className = 'module-header' + (modIdx === 0 ? ' expanded' : '');
+        header.id = `mod-header-${modIdx}`;
+        header.onclick = () => toggleModule(modIdx);
+
+        header.innerHTML = `
+          <div class="module-title-box">
+            <span class="module-arrow" id="arrow-${modIdx}">${modIdx === 0 ? '▼' : '▶'}</span>
+            <span>📁 ${mod.moduleName}</span>
+          </div>
+          <span class="module-badge">${(mod.lessons || []).length}</span>
+        `;
+
+        const lessonsBox = document.createElement('div');
+        lessonsBox.className = 'module-lessons';
+        lessonsBox.id = `mod-box-${modIdx}`;
+        // Collapsed by default unless it is module 0
+        lessonsBox.hidden = (modIdx !== 0);
+
+        (mod.lessons || []).forEach(lesson => {
+          const idx = globalCounter++;
+          const item = document.createElement('div');
+          item.className = 'lesson-item' + (idx === currentGlobalIndex ? ' active' : '');
+          item.id = `flat-lesson-${idx}`;
+          item.onclick = (e) => {
+            e.stopPropagation();
+            loadLessonByIndex(idx);
+          };
+
+          item.innerHTML = `
+            <span class="lesson-tag">${lesson.classNo || ('Class ' + (idx + 1))}</span>
+            <div style="flex:1;">
+              <strong style="font-size:13px;display:block;color:#0f172a;line-height:1.4;">${lesson.title}</strong>
+              <span style="font-size:11px;color:#64748b;">${lesson.duration || ''}</span>
+            </div>
+          `;
+          lessonsBox.appendChild(item);
+        });
+
+        group.appendChild(header);
+        group.appendChild(lessonsBox);
+        container.appendChild(group);
+      });
+    }
+
+    function toggleModule(modIdx) {
+      const targetBox = document.getElementById(`mod-box-${modIdx}`);
+      const targetHeader = document.getElementById(`mod-header-${modIdx}`);
+      const targetArrow = document.getElementById(`arrow-${modIdx}`);
+      if (!targetBox) return;
+
+      const willOpen = targetBox.hidden;
+
+      // Close all other modules so only ONE module is open at a time (compact accordion)
+      const modules = courseData.modules || [];
+      modules.forEach((_, idx) => {
+        const b = document.getElementById(`mod-box-${idx}`);
+        const h = document.getElementById(`mod-header-${idx}`);
+        const a = document.getElementById(`arrow-${idx}`);
+        if (b) {
+          b.hidden = true;
+          if (h) h.classList.remove('expanded');
+          if (a) a.textContent = '▶';
+        }
+      });
+
+      // If it was closed, open it now
+      if (willOpen) {
+        targetBox.hidden = false;
+        if (targetHeader) targetHeader.classList.add('expanded');
+        if (targetArrow) targetArrow.textContent = '▼';
+      }
+    }
+
+    function openModule(modIdx) {
+      const modules = courseData.modules || [];
+      modules.forEach((_, idx) => {
+        const b = document.getElementById(`mod-box-${idx}`);
+        const h = document.getElementById(`mod-header-${idx}`);
+        const a = document.getElementById(`arrow-${idx}`);
+        const shouldOpen = (idx === modIdx);
+        if (b) {
+          b.hidden = !shouldOpen;
+          if (h) h.classList.toggle('expanded', shouldOpen);
+          if (a) a.textContent = shouldOpen ? '▼' : '▶';
+        }
+      });
+    }
+
+    function toggleAllModules() {
+      allExpanded = !allExpanded;
+      const modules = courseData.modules || [];
+      modules.forEach((_, idx) => {
+        const box = document.getElementById(`mod-box-${idx}`);
+        const header = document.getElementById(`mod-header-${idx}`);
+        const arrow = document.getElementById(`arrow-${idx}`);
+        if (box) {
+          box.hidden = !allExpanded;
+          header.classList.toggle('expanded', allExpanded);
+          if (arrow) arrow.textContent = allExpanded ? '▼' : '▶';
+        }
+      });
+      document.getElementById('toggle-all-btn').textContent = allExpanded ? 'Collapse All' : 'Expand All';
+    }
+
+    function loadLessonByIndex(index) {
+      if (!flatLessons[index]) return;
+      currentGlobalIndex = index;
+      const lesson = flatLessons[index];
+
+      // Auto-open this lesson's module
+      if (lesson.moduleIndex !== undefined) {
+        openModule(lesson.moduleIndex);
+      }
+
+      // Format YouTube embed url
+      let ytUrl = lesson.youtube || '';
+      if (ytUrl.includes('watch?v=')) {
+        const id = ytUrl.split('watch?v=')[1]?.split('&')[0];
+        ytUrl = `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1`;
+      } else if (ytUrl.includes('youtu.be/')) {
+        const id = ytUrl.split('youtu.be/')[1]?.split('?')[0];
+        ytUrl = `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1`;
+      } else if (!ytUrl.startsWith('http')) {
+        ytUrl = `https://www.youtube.com/embed/${ytUrl}?rel=0&modestbranding=1`;
+      }
+
+      document.getElementById('video-frame').src = ytUrl;
+      document.getElementById('lesson-title').textContent = lesson.title;
+      document.getElementById('lesson-number-badge').textContent = lesson.moduleName || `Class ${index + 1}`;
+      document.getElementById('lesson-duration').textContent = `Duration: ${lesson.duration || 'Session'}`;
+      document.getElementById('lesson-desc').textContent = lesson.description || '';
+      
+      // Extract and render up to 3 PDFs per class
+      let pdfList = [];
+      if (Array.isArray(lesson.pdfs) && lesson.pdfs.length > 0) {
+        pdfList = lesson.pdfs.slice(0, 3);
+      } else {
+        const p1Url = lesson.pdf1 || lesson.pdf_1 || lesson.pdf;
+        if (p1Url) {
+          pdfList.push({
+            url: p1Url,
+            label: lesson.pdfLabel1 || lesson.pdf_label_1 || lesson.pdfLabel || 'PDF 1: Class Notes'
+          });
+        }
+        const p2Url = lesson.pdf2 || lesson.pdf_2;
+        if (p2Url) {
+          pdfList.push({
+            url: p2Url,
+            label: lesson.pdfLabel2 || lesson.pdf_label_2 || 'PDF 2: Practice / Prompts'
+          });
+        }
+        const p3Url = lesson.pdf3 || lesson.pdf_3;
+        if (p3Url) {
+          pdfList.push({
+            url: p3Url,
+            label: lesson.pdfLabel3 || lesson.pdf_label_3 || 'PDF 3: Reference Material'
+          });
+        }
+      }
+
+      const pdfContainer = document.getElementById('pdf-buttons-container');
+      pdfContainer.innerHTML = '';
+      if (pdfList.length === 0) {
+        pdfContainer.innerHTML = '<span style="font-size:13px;color:#94a3b8;font-style:italic;">No PDF attachments for this class yet.</span>';
+      } else {
+        pdfList.forEach((item, pIdx) => {
+          if (!item.url) return;
+          const btn = document.createElement('a');
+          btn.href = item.url;
+          btn.target = '_blank';
+          btn.rel = 'noopener';
+          const colorClass = pIdx === 0 ? 'btn-pdf' : (pIdx === 1 ? 'btn-pdf btn-pdf-2' : 'btn-pdf btn-pdf-3');
+          btn.className = colorClass;
+          btn.innerHTML = `<span>📄</span> ${item.label || ('PDF ' + (pIdx + 1) + ' Download')}`;
+          pdfContainer.appendChild(btn);
+        });
+      }
+
+      // Update active highlight across flat list
+      document.querySelectorAll('.lesson-item').forEach((el, i) => {
+        el.classList.toggle('active', i === index);
+      });
+
+      // Update prev/next buttons
+      document.getElementById('prev-lesson-btn').disabled = (index === 0);
+      document.getElementById('next-lesson-btn').disabled = (index === flatLessons.length - 1);
+    }
+
+    function prevLesson() {
+      if (currentGlobalIndex > 0) loadLessonByIndex(currentGlobalIndex - 1);
+    }
+
+    function nextLesson() {
+      if (currentGlobalIndex < flatLessons.length - 1) loadLessonByIndex(currentGlobalIndex + 1);
+    }
+
+    initClassroom();
+  </script>
+</body>
+</html>

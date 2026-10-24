@@ -4,30 +4,44 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
-  <title>Registration & Payment | Krishna Divinity</title>
+  <title>Enrollment Status & Access | Krishna Divinity</title>
   <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
-  <link rel="stylesheet" href="assets/styles.css">
+  <link rel="stylesheet" href="assets/styles.css?v=2">
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script src="assets/course-data.js"></script>
   <script src="assets/receipt.js" defer></script>
+  <style>
+    .btn-action-lg { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 16px; font-weight: 700; padding: 14px 22px; border-radius: 8px; text-decoration: none; width: 100%; box-sizing: border-box; margin-bottom: 10px; }
+    .btn-telegram { background: #0284c7; color: #ffffff; box-shadow: 0 2px 4px rgba(2,132,199,0.3); }
+    .btn-telegram:hover { background: #0369a1; color: #ffffff; }
+    .btn-classroom { background: #16a34a; color: #ffffff; box-shadow: 0 2px 4px rgba(22,163,74,0.3); }
+    .btn-classroom:hover { background: #15803d; color: #ffffff; }
+  </style>
 </head>
 <body>
   <header>
     <div class="container nav">
-      <a class="brand" href="index.html"><img src="assets/logo.jpg" alt="Krishna Divinity" class="brand-logo" width="38" height="38"><span>KRISHNA DIVINITY</span></a>
-      <a href="index.html">Home</a>
+      <a class="brand" href="index.html">
+        <img src="assets/logo.jpg" alt="Krishna Divinity" class="brand-logo" width="38" height="38">
+        <span>KRISHNA DIVINITY</span>
+      </a>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <a href="portal.html" class="btn btn-light" style="padding:6px 12px;font-size:13px;">🎓 Student Portal</a>
+        <a href="index.html">Home</a>
+      </div>
     </div>
   </header>
   <main>
     <section class="hero">
       <div class="container" style="max-width:760px">
-        <span class="eyebrow">Course Enrollment</span>
+        <span class="eyebrow" id="status-eyebrow">Course Enrollment</span>
         <h1 id="receipt-title">Registration Status</h1>
-        <p id="receipt-message" class="lead">Checking registration details…</p>
+        <p id="receipt-message" class="lead">Checking enrollment details…</p>
         
         <div id="receipt-details" class="card" hidden style="margin-top:20px;">
-          <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e5e7eb;padding-bottom:12px;margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e5e7eb;padding-bottom:12px;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
             <div>
-              <strong id="receipt-plan" style="font-size:18px;"></strong>
+              <strong id="receipt-plan" style="font-size:18px;color:#1e293b;"></strong>
               <p id="receipt-reference" class="note" style="margin:4px 0 0;"></p>
             </div>
             <div id="receipt-amount-tag" style="text-align:right;">
@@ -37,31 +51,40 @@
 
           <!-- Pending Payment State -->
           <div id="payment-pending-box" style="margin-top:16px;">
-            <p style="margin-bottom:16px;">Your registration has been saved! Complete the payment below to confirm your seat in the batch.</p>
+            <p style="margin-bottom:16px;">Complete your secure payment below to immediately unlock your course classroom and PDF notes.</p>
             <button id="pay-button" class="btn btn-primary btn-block" type="button" style="font-size:18px;padding:14px;">
-              Pay ₹108 Online (UPI, Cards, NetBanking)
+              Pay Online (UPI, Cards, NetBanking)
             </button>
             <p id="payment-status" class="note" style="text-align:center;margin-top:12px;">
-              🔒 100% Secure Checkout powered by Razorpay
+              🔒 100% Secure Checkout powered by Razorpay • 48-Hour Money-Back Guarantee
             </p>
           </div>
 
           <!-- Confirmed Payment State -->
-          <div id="payment-confirmed-box" hidden style="margin-top:16px;background:#f0fdf4;border:1px solid #bbf7d0;padding:20px;border-radius:10px;">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-              <span style="font-size:24px;">🎉</span>
-              <strong style="font-size:20px;color:#166534;">Payment Confirmed!</strong>
+          <div id="payment-confirmed-box" hidden style="margin-top:16px;background:#f0fdf4;border:1px solid #bbf7d0;padding:24px 20px;border-radius:12px;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+              <span style="font-size:32px;">🎉</span>
+              <div>
+                <strong style="font-size:22px;color:#166534;display:block;">Enrollment Confirmed!</strong>
+                <span style="font-size:13px;color:#15803d;">Hare Krishna! Your course access is fully unlocked.</span>
+              </div>
             </div>
-            <p style="color:#15803d;margin-bottom:12px;">Hare Krishna! Your payment has been received and your batch seat is locked.</p>
-            <p id="payment-id-display" class="note" style="color:#166534;font-family:monospace;margin-bottom:16px;"></p>
+
+            <p id="payment-id-display" class="note" style="color:#166534;font-family:monospace;margin-bottom:18px;"></p>
             
-            <div style="margin-top:16px;border-top:1px solid #dcfce7;padding-top:14px;">
-              <strong>Next Step:</strong> Join the Batch WhatsApp Group for live class Zoom links, schedule announcements, and study material.
-              <p style="margin-top:12px;">
-                <a id="whatsapp-join-btn" class="btn btn-primary btn-block" href="https://chat.whatsapp.com/HS3jV1CPnwZ8O8yuKcmyR7" target="_blank" rel="noopener">
-                  💬 Join Batch WhatsApp Community
-                </a>
-              </p>
+            <div style="margin-top:18px;border-top:1px solid #dcfce7;padding-top:18px;">
+              <h3 style="font-size:17px;color:#14532d;margin:0 0 12px;">🚀 Next Steps:</h3>
+              
+              <!-- 1. Open Classroom -->
+              <a id="classroom-enter-btn" class="btn-action-lg btn-classroom" href="classroom.html">
+                ▶ Start Learning Now (क्लास शुरू करें)
+              </a>
+
+              <!-- 2. Join Telegram -->
+              <a id="telegram-join-btn" class="btn-action-lg btn-telegram" href="https://t.me/+zrMP1VqfFBQzNjE1" target="_blank" rel="noopener">
+                ✈ Join Official Telegram Community
+              </a>
+
               <p class="note" style="text-align:center;margin-top:14px;color:#166534;">
                 Questions or batch support? Phone / WhatsApp: <a href="https://wa.me/917356052212" style="font-weight:600;color:#166534;">+91 73560 52212</a>
               </p>
@@ -70,7 +93,8 @@
         </div>
 
         <div class="hero-actions" style="margin-top:24px;">
-          <a class="btn btn-light" href="index.html">Back to Home</a>
+          <a class="btn btn-light" href="portal.html">Student Portal</a>
+          <a class="btn btn-light" href="index.html">Home</a>
           <a class="btn btn-light" href="gita.html">Gita Course</a>
           <a class="btn btn-light" href="ai.html">AI Course</a>
         </div>

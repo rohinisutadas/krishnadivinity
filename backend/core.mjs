@@ -6,9 +6,14 @@ export const SCHEMA = {
   Batches: ['batch_id','course','start_at','capacity','status','language','schedule','instructor']
 };
 export const PLANS = {
-  'gita-complete': {course:'gita',name:'Gita Foundation Course',price:108},
-  'ai-live': {course:'ai',name:'AI Live Classes',price:108},
-  'ai-complete': {course:'ai',name:'AI Live + Recorded Course',price:1080}
+  'gita-lifetime': {course:'gita', name:'Bhagavad Gita Foundation Course (Lifetime)', price:108, validity:'lifetime', validityDays:0, validityLabel:'Lifetime Access'},
+  'ai-3m': {course:'ai', name:'Practical AI Course (3 Months)', price:108, validity:'3_months', validityDays:90, validityLabel:'3 Months Access'},
+  'ai-1y': {course:'ai', name:'Practical AI Course (1 Year)', price:500, validity:'1_year', validityDays:365, validityLabel:'1 Year Access'},
+  'ai-lifetime': {course:'ai', name:'Practical AI Course (Lifetime)', price:1080, validity:'lifetime', validityDays:0, validityLabel:'Lifetime Access'},
+  // Backwards compatibility for earlier links
+  'gita-complete': {course:'gita', name:'Bhagavad Gita Foundation Course', price:108, validity:'lifetime', validityDays:0, validityLabel:'Lifetime Access'},
+  'ai-live': {course:'ai', name:'AI Live Classes (3 Months)', price:108, validity:'3_months', validityDays:90, validityLabel:'3 Months Access'},
+  'ai-complete': {course:'ai', name:'AI Live + Recorded Course (Lifetime)', price:1080, validity:'lifetime', validityDays:0, validityLabel:'Lifetime Access'}
 };
 export function validate(input, now = new Date()) {
   const errors = {};
@@ -54,11 +59,21 @@ export function registrationMutation(data, db, now, id) {
   const timestamp = now.toISOString();
   const person = student || {student_id:'ST-'+id(),full_name:data.full_name,whatsapp:data.whatsapp,email:data.email,city:data.city,date_of_birth:data.date_of_birth,consent_at:timestamp,consent_version:'course-updates-v1',created_at:timestamp};
   const batch = selectBatch(db.Batches,db.Registrations,plan.course,now);
-  const registration = {registration_id:'REG-'+id(),request_id:data.request_id,student_id:person.student_id,course:plan.course,plan:data.plan,batch_id:batch?.batch_id || '',registered_at:timestamp,amount_due_inr:plan.price,status:batch?'pending_payment':'waitlisted',whatsapp_status:'not_invited',recordings_access:data.plan==='ai-live'?'not_included':'pending',source:data.source};
+  const registration = {registration_id:'REG-'+id(),request_id:data.request_id,student_id:person.student_id,course:plan.course,plan:data.plan,batch_id:batch?.batch_id || '',registered_at:timestamp,amount_due_inr:plan.price,status:batch?'pending_payment':'waitlisted',whatsapp_status:'not_invited',recordings_access:'pending',source:data.source};
   return {rows:[...(student?[]:[{sheet:'Students',record:person}]),{sheet:'Registrations',record:registration}],receipt:receiptFor(registration)};
 }
 export function receiptFor(r) {
-  return {registrationId:r.registration_id,plan:r.plan,status:r.status,amountDue:Number(r.amount_due_inr)};
+  const plan = PLANS[r.plan] || {};
+  return {
+    registrationId: r.registration_id,
+    plan: r.plan,
+    course: r.course || plan.course,
+    name: plan.name || r.plan,
+    status: r.status,
+    amountDue: Number(r.amount_due_inr),
+    validity: plan.validity || 'lifetime',
+    validityLabel: plan.validityLabel || 'Lifetime Access'
+  };
 }
 export function paymentMutation(data, db, now, id) {
   const reg = db.Registrations.find(r => r.registration_id === data.registration_id);
