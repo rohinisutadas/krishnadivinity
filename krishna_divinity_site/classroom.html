@@ -72,6 +72,11 @@
       <!-- Video Player -->
       <div class="video-container" id="player-wrapper">
         <iframe id="video-frame" src="" title="Course Video" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        <div id="video-coming-soon" hidden style="position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,#0f172a,#1e293b);text-align:center;padding:24px;box-sizing:border-box;">
+          <span style="font-size:48px;margin-bottom:12px;">🎬</span>
+          <h3 style="margin:0 0 8px;font-size:20px;color:#f8fafc;">Class Recording Coming Soon</h3>
+          <p style="margin:0 0 16px;max-width:440px;color:#94a3b8;font-size:14px;line-height:1.5;">The live class recording will be uploaded here shortly after the session. You can study the attached PDF notes below in the meantime.</p>
+        </div>
       </div>
 
       <!-- Video Controls Tip (Speed & Quality) -->
@@ -142,7 +147,7 @@
   <script>
     const params = new URLSearchParams(window.location.search);
     const courseId = params.get('course') || 'ai';
-    const courseData = window.KD_COURSES?.[courseId] || window.KD_COURSES?.ai;
+    let courseData = window.KD_COURSES?.[courseId] || window.KD_COURSES?.ai;
 
     let flatLessons = [];
     let currentGlobalIndex = 0;
@@ -177,14 +182,9 @@
       return true;
     }
 
-    function initClassroom() {
-      if (!courseData) return;
-      document.title = `${courseData.title} | Classroom`;
-      document.getElementById('header-course-title').textContent = courseData.title;
-
-      // Build flat lessons list for easy sequential next/prev
+    function rebuildFlatLessons() {
       flatLessons = [];
-      const modules = courseData.modules || [];
+      const modules = courseData?.modules || [];
       modules.forEach((mod, modIdx) => {
         (mod.lessons || []).forEach(les => {
           flatLessons.push({
@@ -194,10 +194,33 @@
           });
         });
       });
+    }
 
-      renderModules(modules);
+    function initClassroom() {
+      if (!courseData) return;
+      document.title = `${courseData.title} | Classroom`;
+      document.getElementById('header-course-title').textContent = courseData.title;
+
+      rebuildFlatLessons();
+      renderModules(courseData.modules || []);
       if (checkValidity() && flatLessons.length > 0) {
         loadLessonByIndex(0);
+      }
+
+      // Live auto-sync from Google Sheet CSV
+      if (typeof window.syncCoursesFromGoogleSheet === 'function') {
+        window.syncCoursesFromGoogleSheet((updatedCourses) => {
+          const freshData = updatedCourses?.[courseId];
+          if (freshData && freshData.modules && freshData.modules.length > 0) {
+            courseData = freshData;
+            rebuildFlatLessons();
+            renderModules(courseData.modules);
+            if (flatLessons.length > 0) {
+              const safeIndex = Math.min(currentGlobalIndex, flatLessons.length - 1);
+              loadLessonByIndex(safeIndex);
+            }
+          }
+        });
       }
     }
 
@@ -328,18 +351,31 @@
       }
 
       // Format YouTube embed url
-      let ytUrl = lesson.youtube || '';
+      let ytUrl = (lesson.youtube || '').trim();
       if (ytUrl.includes('watch?v=')) {
         const id = ytUrl.split('watch?v=')[1]?.split('&')[0];
-        ytUrl = `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1`;
+        ytUrl = id ? `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1` : '';
       } else if (ytUrl.includes('youtu.be/')) {
         const id = ytUrl.split('youtu.be/')[1]?.split('?')[0];
-        ytUrl = `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1`;
-      } else if (!ytUrl.startsWith('http')) {
+        ytUrl = id ? `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1` : '';
+      } else if (ytUrl && !ytUrl.startsWith('http')) {
         ytUrl = `https://www.youtube.com/embed/${ytUrl}?rel=0&modestbranding=1`;
       }
 
-      document.getElementById('video-frame').src = ytUrl;
+      const vFrame = document.getElementById('video-frame');
+      const vSoon = document.getElementById('video-coming-soon');
+      const pTip = document.getElementById('player-tip');
+      if (ytUrl) {
+        vFrame.hidden = false;
+        vSoon.hidden = true;
+        pTip.hidden = false;
+        vFrame.src = ytUrl;
+      } else {
+        vFrame.hidden = true;
+        vFrame.src = '';
+        vSoon.hidden = false;
+        pTip.hidden = true;
+      }
       document.getElementById('lesson-title').textContent = lesson.title;
       document.getElementById('lesson-number-badge').textContent = lesson.moduleName || `Class ${index + 1}`;
       document.getElementById('lesson-duration').textContent = `Duration: ${lesson.duration || 'Session'}`;

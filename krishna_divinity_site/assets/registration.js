@@ -1,3 +1,7 @@
+const API_BASE = (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost')
+  ? ''
+  : 'https://krishnadivinity.netlify.app';
+
 const form = document.querySelector('#registration-form');
 const fields = document.querySelector('#registration-fields');
 const availability = document.querySelector('#availability');
@@ -72,7 +76,7 @@ function showErrors(message, errors = {}) {
 
 async function checkAvailability() {
   try {
-    const response = await fetch('/api/register', { cache: 'no-store' });
+    const response = await fetch(`${API_BASE}/api/register`, { cache: 'no-store' });
     const data = await response.json();
     if (!response.ok || !data.enabled) throw new Error();
     enabled = true;
@@ -104,7 +108,7 @@ form.addEventListener('submit', async event => {
   button.textContent = 'Saving details…';
 
   try {
-    const response = await fetch('/api/register', {
+    const response = await fetch(`${API_BASE}/api/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(input),
@@ -140,7 +144,7 @@ form.addEventListener('submit', async event => {
     if (!isDemo && typeof Razorpay !== 'undefined') {
       button.textContent = 'Opening secure checkout…';
       try {
-        const orderRes = await fetch('/api/create-order', {
+        const orderRes = await fetch(`${API_BASE}/api/create-order`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ registrationId: receipt.registrationId, plan: receipt.plan })
@@ -168,7 +172,7 @@ form.addEventListener('submit', async event => {
             handler: async function (payResp) {
               button.textContent = 'Confirming enrollment…';
               try {
-                await fetch('/api/verify-payment', {
+                await fetch(`${API_BASE}/api/verify-payment`, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({

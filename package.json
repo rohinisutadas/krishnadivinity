@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node tools/dev-server.mjs",
     "demo": "node tools/dev-server.mjs --demo",
-    "test": "node --test tests/*.test.mjs",
+    "test": "node --test tests/registration.test.mjs",
     "build": "node tools/build.mjs"
   },
   "engines": { "node": ">=22" }

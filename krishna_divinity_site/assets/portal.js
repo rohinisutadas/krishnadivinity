@@ -39,6 +39,16 @@ function initPortal() {
   } else {
     showLogin();
   }
+
+  // Sync latest course data from Google Sheet in background
+  if (typeof window.syncCoursesFromGoogleSheet === 'function') {
+    window.syncCoursesFromGoogleSheet(() => {
+      const activeSession = getStoredSession();
+      if (activeSession && (activeSession.email || activeSession.whatsapp)) {
+        showDashboard(activeSession);
+      }
+    });
+  }
 }
 
 function showLogin() {

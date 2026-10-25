@@ -1,4 +1,4 @@
-// GENERATED: run npm run build or python tools/build.py after editing backend/core.mjs
+// GENERATED: run npm run build after editing backend/core.mjs
 // Shared by the Netlify endpoint, Apps Script bundle and local tests.
 const SCHEMA = {
   Students: ['student_id','full_name','whatsapp','email','city','date_of_birth','consent_at','consent_version','created_at'],

@@ -1,3 +1,7 @@
+const API_BASE = (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost')
+  ? ''
+  : 'https://krishnadivinity.netlify.app';
+
 let receipt;
 try { receipt = JSON.parse(sessionStorage.getItem('kd_receipt')); } catch {}
 
@@ -109,7 +113,7 @@ function setupPaymentHandler(amount) {
     payStatusEl.textContent = 'Connecting to Razorpay…';
 
     try {
-      const orderRes = await fetch('/api/create-order', {
+      const orderRes = await fetch(`${API_BASE}/api/create-order`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ registrationId: receipt.registrationId, plan: receipt.plan })
@@ -143,7 +147,7 @@ function setupPaymentHandler(amount) {
           payBtn.textContent = 'Verifying payment…';
           payStatusEl.textContent = 'Verifying your payment with the server…';
           try {
-            const verifyRes = await fetch('/api/verify-payment', {
+            const verifyRes = await fetch(`${API_BASE}/api/verify-payment`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({

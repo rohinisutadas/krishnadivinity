@@ -1,7 +1,10 @@
 // Krishna Divinity - Student Course Content
 // Structured topic-wise (Modules & Classes).
-// Can also be synced dynamically from Google Sheets 'Lessons' tab.
+// Synced dynamically from Google Sheets 'Lessons' published CSV tab.
 
+window.KD_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vS4XzE8kHkKs3z3JzAUWXFXvqD4SFz6QF4bThewGyFWiu88msGxdgedltZCJBg2gt1uGStfNly5Bxt9/pub?gid=803244824&single=true&output=csv";
+
+// Fallback & base initial structure matching the Google Sheet exactly
 window.KD_COURSES = {
   gita: {
     id: "gita",
@@ -12,146 +15,71 @@ window.KD_COURSES = {
     description: "Systematic, practical, and interactive study of Bhagavad Gita As It Is with live class recordings and structured digital learning.",
     modules: [
       {
-        moduleName: "Overview & Foundations",
+        moduleName: "Chapter 1: Arjuna Vishada Yoga",
         moduleNumber: "1",
         lessons: [
           {
             id: "gita-1-1",
             classNo: "1.1",
-            title: "1.1: Introduction to Bhagavad Gita As It Is",
-            duration: "45 mins",
-            description: "Understanding the 5 basic truths of the Bhagavad Gita: Ishvara (God), Jiva (Soul), Prakriti (Nature), Kala (Time), and Karma (Action).",
-            youtube: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+            title: "Observing the Armies & Signs of Victory",
+            duration: "53 mins",
+            description: "The battlefield of Kurukshetra and Parampara.",
+            youtube: "https://www.youtube.com/embed/iGHaiZDs7Jw",
             pdfs: [
-              { url: "https://drive.google.com/", label: "PDF 1: Introduction Notes (PDF)" },
-              { url: "https://drive.google.com/", label: "PDF 2: 5 Basic Truths Chart (PDF)" },
-              { url: "https://drive.google.com/", label: "PDF 3: Sanskrit Terms Guide (PDF)" }
+              { url: "https://drive.google.com/file/d/18b16eY03lBkl0IePNJrITvbcb7a93AD6/view?usp=drive_link", label: "PDF 1: Chapter 1 Notes" },
+              { url: "https://drive.google.com/", label: "PDF 2: Parampara Chart" },
+              { url: "https://drive.google.com/", label: "PDF 3: Shloka Guide" }
             ]
-          },
-          {
-            id: "gita-1-2",
-            classNo: "1.2",
-            title: "1.2: The Setting of Kurukshetra & Parampara",
-            duration: "40 mins",
-            description: "The historical lineage of disciplic succession and the spiritual battlefield within.",
-            youtube: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-            pdfs: [
-              { url: "https://drive.google.com/", label: "PDF 1: Kurukshetra Setting Notes (PDF)" },
-              { url: "https://drive.google.com/", label: "PDF 2: Parampara Lineage Chart (PDF)" }
-            ]
-          }
-        ]
-      },
-      {
-        moduleName: "Chapter 1: Arjuna Vishada Yoga",
-        moduleNumber: "2",
-        lessons: [
-          {
-            id: "gita-2-1",
-            classNo: "2.1",
-            title: "2.1: Observing the Armies & Signs of Victory",
-            duration: "50 mins",
-            description: "The significance of conch shells, Hanuman on the flag, and Krishna as the supreme charioteer.",
-            youtube: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-            pdf: "https://drive.google.com/",
-            pdfLabel: "Download 2.1 Notes (PDF)"
-          },
-          {
-            id: "gita-2-2",
-            classNo: "2.2",
-            title: "2.2: Arjuna's 5 Reasons for Not Fighting",
-            duration: "55 mins",
-            description: "Compassion, loss of enjoyment, fear of sinful reaction, destruction of family tradition, and indecision.",
-            youtube: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-            pdf: "https://drive.google.com/",
-            pdfLabel: "Download 2.2 Five Doubts Chart (PDF)"
           }
         ]
       },
       {
         moduleName: "Chapter 2: Sankhya Yoga",
-        moduleNumber: "3",
+        moduleNumber: "2",
         lessons: [
           {
-            id: "gita-3-1",
-            classNo: "3.1",
-            title: "3.1: Surrender to the Spiritual Master",
-            duration: "48 mins",
-            description: "Karpanya-doshopahata-svabhavah: Arjuna accepts Krishna as his Guru and seeks guidance.",
-            youtube: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-            pdf: "https://drive.google.com/",
-            pdfLabel: "Download 3.1 Notes (PDF)"
-          },
-          {
-            id: "gita-3-2",
-            classNo: "3.2",
-            title: "3.2: Science of the Soul (Dehino 'smin)",
-            duration: "55 mins",
-            description: "The eternal nature of the soul, transmigration of bodies, and overcoming grief.",
-            youtube: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-            pdf: "https://drive.google.com/",
-            pdfLabel: "Download 3.2 Soul vs Body Chart (PDF)"
-          }
-        ]
-      },
-      {
-        moduleName: "Chapter 3: Karma Yoga",
-        moduleNumber: "3",
-        lessons: [
-          {
-            id: "gita-3-1",
-            classNo: "3.1",
-            title: "3.1: Action in Krishna Consciousness vs Renunciation",
-            duration: "52 mins",
-            description: "Why action in devotion is superior to premature renunciation. Performing prescribed duties without attachment.",
-            youtube: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+            id: "gita-2-1",
+            classNo: "2.1",
+            title: "Surrender to Spiritual Master",
+            duration: "35 mins",
+            description: "Arjuna accepts Krishna as his Guru.",
+            youtube: "https://www.youtube.com/embed/DwhE0rq171Y",
             pdfs: [
-              { url: "https://drive.google.com/", label: "PDF 1: Chapter 3 Overview Notes" },
-              { url: "https://drive.google.com/", label: "PDF 2: Yajna & Karma Cycle Chart" },
-              { url: "https://drive.google.com/", label: "PDF 3: Daily Duty Worksheet" }
-            ]
-          },
-          {
-            id: "gita-3-2",
-            classNo: "3.2",
-            title: "3.2: Conquering Lust — The Supreme Enemy",
-            duration: "50 mins",
-            description: "Understanding how kama (lust) covers the soul and using spiritual intelligence to regulate senses.",
-            youtube: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-            pdfs: [
-              { url: "https://drive.google.com/", label: "PDF 1: Lust vs Love Summary Notes" },
-              { url: "https://drive.google.com/", label: "PDF 2: Mind & Sense Control Guide" }
+              { url: "https://drive.google.com/file/d/1YF-ZH85-PcLvF3jxhG1ryHep8J53AOVS/view?usp=sharing", label: "PDF 1: Chapter 2 Notes" }
             ]
           }
         ]
       },
       {
-        moduleName: "Chapter 4: Transcendental Knowledge",
+        moduleName: "Chapter 3: Karma Yoga (कर्म योग)",
+        moduleNumber: "3",
+        lessons: [
+          {
+            id: "gita-3-1",
+            classNo: "3.1",
+            title: "Action in Krishna Consciousness",
+            duration: "1 hr 11 min",
+            description: "Action in Krishna Consciousness: Why working in devotion is superior to premature renunciation. Performing prescribed duties without fruitive attachment.",
+            youtube: "https://www.youtube.com/embed/J515fKeNZ_A",
+            pdfs: [
+              { url: "https://drive.google.com/file/d/1giM_wRMjdKfF-uG0k04_8wLrX-0zfhAm/view?usp=sharing", label: "PDF 1: Chapter 3 Karma Yoga Notes" }
+            ]
+          }
+        ]
+      },
+      {
+        moduleName: "Chapter 4: Transcendental Knowledge (दिव्य ज्ञान)",
         moduleNumber: "4",
         lessons: [
           {
             id: "gita-4-1",
             classNo: "4.1",
-            title: "4.1: The History & Purpose of Krishna's Appearance",
-            duration: "52 mins",
-            description: "Yada yada hi dharmasya: Disciplic succession (parampara), and the divine nature of Krishna's appearance (janma karma ca me divyam).",
-            youtube: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+            title: "The Divine Appearance of Krishna & Parampara",
+            duration: "1 hr 01 min",
+            description: "Transcendental Knowledge: Disciplic succession (parampara), divine birth and activities of Krishna (janma karma ca me divyam), and approaching a spiritual master.",
+            youtube: "https://www.youtube.com/embed/oQFperf2qj8",
             pdfs: [
-              { url: "https://drive.google.com/", label: "PDF 1: Chapter 4 Study Notes" },
-              { url: "https://drive.google.com/", label: "PDF 2: Parampara Lineage Tree" },
-              { url: "https://drive.google.com/", label: "PDF 3: Key Sanskrit Shlokas" }
-            ]
-          },
-          {
-            id: "gita-4-2",
-            classNo: "4.2",
-            title: "4.2: Approaching a Guru & The Fire of Knowledge",
-            duration: "48 mins",
-            description: "Tad viddhi pranipatena: Inquiring submissively from the spiritual master. How the fire of transcendental knowledge burns all reactions.",
-            youtube: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-            pdfs: [
-              { url: "https://drive.google.com/", label: "PDF 1: Qualifications of Guru & Disciple" },
-              { url: "https://drive.google.com/", label: "PDF 2: Sacrifice of Knowledge Summary" }
+              { url: "https://drive.google.com/file/d/1EXFGxox66G07FgBiqmxy29SkpsIZU6eD/view?usp=sharing", label: "PDF 1: Chapter 4 Study Notes" }
             ]
           }
         ]
@@ -163,10 +91,10 @@ window.KD_COURSES = {
           {
             id: "gita-5-1",
             classNo: "5.1",
-            title: "5.1: Action in Devotion & The Lotus Leaf Analogy",
-            duration: "55 mins",
-            description: "Understanding karma-sannyasa vs karma-yoga. Performing action without attachment like a lotus leaf untouched by water (padma-patram ivambhasa), and the Peace Formula (5.29).",
-            youtube: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+            title: "Action in Devotion & The Lotus Leaf Analogy",
+            duration: "54 mins",
+            description: "Karma-Sannyasa vs Karma-Yoga: Performing prescribed duties without attachment, like a lotus leaf untouched by water (padma-patram ivambhasa), and the ultimate Peace Formula (5.29).",
+            youtube: "https://www.youtube.com/embed/XlfVKO12UlM",
             pdfs: [
               { url: "https://drive.google.com/file/d/1TqkNKwf8jLSxxYgzjcS0D-uGLpTdVkeM/view?usp=sharing", label: "PDF 1: Chapter 5 Karma Sannyasa Notes" }
             ]
@@ -184,77 +112,50 @@ window.KD_COURSES = {
     description: "Learn practical Artificial Intelligence tools and real workflows: prompt engineering, content generation, visual design, video creation, and teaching automation.",
     modules: [
       {
-        moduleName: "Topic 1: Script Writing for Videos & Classes",
+        moduleName: "Topic 1: Script Writing",
         moduleNumber: "1",
         lessons: [
           {
             id: "ai-1-1",
             classNo: "1.1",
-            title: "1.1: Script Writing — Hook & Core Concept",
+            title: "Hook & Core Concept",
             duration: "45 mins",
-            description: "Structuring engaging hooks, retaining audience interest, and turning ideas into clear video outlines using AI.",
-            youtube: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+            description: "Structuring engaging hooks using AI.",
+            youtube: "",
             pdfs: [
-              { url: "https://drive.google.com/", label: "PDF 1: Script Writing Prompts (PDF)" },
-              { url: "https://drive.google.com/", label: "PDF 2: Hook Formulas Cheatsheet (PDF)" },
-              { url: "https://drive.google.com/", label: "PDF 3: Homework Assignment (PDF)" }
+              { url: "https://drive.google.com/", label: "PDF 1: Class Notes" },
+              { url: "https://drive.google.com/", label: "PDF 2: Prompts Cheatsheet" },
+              { url: "https://drive.google.com/", label: "PDF 3: Homework Assignment" }
             ]
           },
           {
             id: "ai-1-2",
             classNo: "1.2",
-            title: "1.2: Script Writing — Pacing, Tone & Storytelling",
+            title: "Pacing, Tone & Storytelling",
             duration: "50 mins",
-            description: "Refining tone for spiritual, educational, or professional videos and developing smooth narrative flow.",
-            youtube: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-            pdf: "https://drive.google.com/",
-            pdfLabel: "Download 1.2 Storytelling Blueprint (PDF)"
-          },
-          {
-            id: "ai-1-3",
-            classNo: "1.3",
-            title: "1.3: Script Writing — Live Demo & Polishing",
-            duration: "48 mins",
-            description: "Live step-by-step drafting of a YouTube video script from blank page to ready-to-record teleprompter text.",
-            youtube: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-            pdf: "https://drive.google.com/",
-            pdfLabel: "Download 1.3 Teleprompter Template (PDF)"
+            description: "Refining tone for spiritual and educational videos.",
+            youtube: "",
+            pdfs: [
+              { url: "https://drive.google.com/", label: "PDF 1: Storytelling Blueprint" },
+              { url: "https://drive.google.com/", label: "PDF 2: Assignment Sheet" }
+            ]
           }
         ]
       },
       {
-        moduleName: "Topic 2: AI Video Creation & Editing",
+        moduleName: "Topic 2: AI Video Creation",
         moduleNumber: "2",
         lessons: [
           {
             id: "ai-2-1",
             classNo: "2.1",
-            title: "2.1: Video Editing — AI Tools & Automated Captions",
-            duration: "50 mins",
-            description: "Using AI-assisted tools for automated subtitle generation, silence removal, and pacing optimization.",
-            youtube: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-            pdf: "https://drive.google.com/",
-            pdfLabel: "Download 2.1 Video Tools Cheatsheet (PDF)"
-          },
-          {
-            id: "ai-2-2",
-            classNo: "2.2",
-            title: "2.2: Video Editing — B-Roll, Voice & Sound Effects",
-            duration: "52 mins",
-            description: "Generating AI voiceovers, pairing cinematic B-roll visuals, and mixing background music.",
-            youtube: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-            pdf: "https://drive.google.com/",
-            pdfLabel: "Download 2.2 B-Roll Prompts (PDF)"
-          },
-          {
-            id: "ai-2-3",
-            classNo: "2.3",
-            title: "2.3: Video Editing — Exporting for YouTube & Reels",
-            duration: "45 mins",
-            description: "Aspect ratios (16:9 vs 9:16), compression settings, and multi-platform publishing workflows.",
-            youtube: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-            pdf: "https://drive.google.com/",
-            pdfLabel: "Download 2.3 Export Settings Guide (PDF)"
+            title: "AI Tools & Automated Captions",
+            duration: "48 mins",
+            description: "Automated subtitle generation and editing.",
+            youtube: "",
+            pdfs: [
+              { url: "https://drive.google.com/", label: "PDF 1: Video Tools Cheatsheet" }
+            ]
           }
         ]
       },
@@ -265,22 +166,24 @@ window.KD_COURSES = {
           {
             id: "ai-3-1",
             classNo: "3.1",
-            title: "3.1: Graphic Design — YouTube Thumbnails with AI",
+            title: "Graphic Design — YouTube Thumbnails with AI",
             duration: "45 mins",
             description: "Designing high-CTR YouTube thumbnails with vibrant contrast, expressive faces, and clean typography.",
-            youtube: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-            pdf: "https://drive.google.com/",
-            pdfLabel: "Download 3.1 Thumbnail Prompts (PDF)"
+            youtube: "",
+            pdfs: [
+              { url: "https://drive.google.com/", label: "Download 3.1 Thumbnail Prompts (PDF)" }
+            ]
           },
           {
             id: "ai-3-2",
             classNo: "3.2",
-            title: "3.2: Graphic Design — Posters, Social Graphics & Artwork",
+            title: "Graphic Design — Posters, Social Graphics & Artwork",
             duration: "50 mins",
             description: "Generating educational posters, festival announcements, and spiritual art with Midjourney/DALL-E prompts.",
-            youtube: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-            pdf: "https://drive.google.com/",
-            pdfLabel: "Download 3.2 Art Generation Guide (PDF)"
+            youtube: "",
+            pdfs: [
+              { url: "https://drive.google.com/", label: "Download 3.2 Art Generation Guide (PDF)" }
+            ]
           }
         ]
       },
@@ -291,25 +194,185 @@ window.KD_COURSES = {
           {
             id: "ai-4-1",
             classNo: "4.1",
-            title: "4.1: Prompt Engineering — Fundamentals & Techniques",
+            title: "Prompt Engineering — Fundamentals & Techniques",
             duration: "50 mins",
             description: "Mastering role prompts, few-shot prompting, chain-of-thought, and output constraints.",
-            youtube: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-            pdf: "https://drive.google.com/",
-            pdfLabel: "Download 4.1 Master Prompts (PDF)"
+            youtube: "",
+            pdfs: [
+              { url: "https://drive.google.com/", label: "Download 4.1 Master Prompts (PDF)" }
+            ]
           },
           {
             id: "ai-4-2",
             classNo: "4.2",
-            title: "4.2: Deep Research & Literature Synthesis",
+            title: "Deep Research & Literature Synthesis",
             duration: "45 mins",
             description: "Summarizing books, comparing translations, synthesizing research papers, and organizing notes.",
-            youtube: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-            pdf: "https://drive.google.com/",
-            pdfLabel: "Download 4.2 Research Framework (PDF)"
+            youtube: "",
+            pdfs: [
+              { url: "https://drive.google.com/", label: "Download 4.2 Research Framework (PDF)" }
+            ]
           }
         ]
       }
     ]
+  }
+};
+
+// Check if cached data exists in localStorage
+try {
+  const cached = localStorage.getItem('kd_sheet_courses_cache');
+  if (cached) {
+    const parsedCache = JSON.parse(cached);
+    if (parsedCache && parsedCache.gita && parsedCache.ai) {
+      window.KD_COURSES = parsedCache;
+    }
+  }
+} catch (e) {}
+
+// Robust CSV Parser
+window.kdParseCSV = function(text) {
+  const lines = [];
+  let row = [''];
+  let inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    const next = text[i + 1];
+    if (c === '"') {
+      if (inQuotes && next === '"') {
+        row[row.length - 1] += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (c === ',' && !inQuotes) {
+      row.push('');
+    } else if ((c === '\r' || c === '\n') && !inQuotes) {
+      if (c === '\r' && next === '\n') i++;
+      lines.push(row);
+      row = [''];
+    } else {
+      row[row.length - 1] += c;
+    }
+  }
+  if (row.length > 1 || (row.length === 1 && row[0] !== '')) {
+    lines.push(row);
+  }
+  return lines;
+};
+
+// Dynamic sync function that fetches from Google Sheet CSV
+window.syncCoursesFromGoogleSheet = async function(onSuccess) {
+  if (!window.KD_SHEET_CSV_URL) return;
+  try {
+    const res = await fetch(window.KD_SHEET_CSV_URL, { cache: 'no-cache' });
+    if (!res.ok) return;
+    const csv = await res.text();
+    const table = window.kdParseCSV(csv);
+    if (table.length <= 1) return;
+
+    const headers = table[0].map(h => (h || '').trim().toLowerCase().replace(/[\s_-]+/g, ''));
+    
+    // Create new structure preserving course metadata
+    const updated = {
+      gita: {
+        id: 'gita',
+        title: 'Bhagavad Gita Foundation Course',
+        badge: 'Spiritual Wisdom',
+        instructor: 'Rohini Suta Dasa',
+        telegramLink: 'https://t.me/+zrMP1VqfFBQzNjE1',
+        description: 'Systematic, practical, and interactive study of Bhagavad Gita As It Is with live class recordings and structured digital learning.',
+        modules: []
+      },
+      ai: {
+        id: 'ai',
+        title: 'Practical AI Course',
+        badge: '10 Modern Skills',
+        instructor: 'Rohini Suta Dasa',
+        telegramLink: 'https://t.me/+zrMP1VqfFBQzNjE1',
+        description: 'Learn practical Artificial Intelligence tools and real workflows: prompt engineering, content generation, visual design, video creation, and teaching automation.',
+        modules: []
+      }
+    };
+
+    let hasGita = false;
+    let hasAi = false;
+
+    for (let i = 1; i < table.length; i++) {
+      const row = table[i];
+      if (!row || !row[0]) continue;
+      const get = (key) => {
+        const idx = headers.indexOf(key);
+        return idx >= 0 && row[idx] !== undefined ? String(row[idx]).trim() : '';
+      };
+
+      const courseId = get('course').toLowerCase();
+      if (!updated[courseId]) continue;
+      if (courseId === 'gita') hasGita = true;
+      if (courseId === 'ai') hasAi = true;
+
+      const moduleName = get('module') || 'General';
+      let mod = updated[courseId].modules.find(m => m.moduleName === moduleName);
+      if (!mod) {
+        mod = {
+          moduleName: moduleName,
+          moduleNumber: String(updated[courseId].modules.length + 1),
+          lessons: []
+        };
+        updated[courseId].modules.push(mod);
+      }
+
+      const pdfList = [];
+      const p1 = get('pdf1') || get('pdf');
+      const p1L = get('pdflabel1') || 'PDF 1: Class Notes';
+      if (p1) pdfList.push({ url: p1, label: p1L });
+
+      const p2 = get('pdf2');
+      const p2L = get('pdflabel2') || 'PDF 2: Study Material';
+      if (p2) pdfList.push({ url: p2, label: p2L });
+
+      const p3 = get('pdf3');
+      const p3L = get('pdflabel3') || 'PDF 3: Reference Guide';
+      if (p3) pdfList.push({ url: p3, label: p3L });
+
+      let yt = get('youtube') || '';
+      if (yt) {
+        if (yt.includes('youtu.be/')) {
+          const vid = yt.split('youtu.be/')[1].split('?')[0];
+          yt = `https://www.youtube.com/embed/${vid}`;
+        } else if (yt.includes('watch?v=')) {
+          const vid = yt.split('watch?v=')[1].split('&')[0];
+          yt = `https://www.youtube.com/embed/${vid}`;
+        } else if (!yt.startsWith('http')) {
+          yt = `https://www.youtube.com/embed/${yt}`;
+        }
+      }
+
+      mod.lessons.push({
+        id: `${courseId}-${mod.moduleNumber}-${mod.lessons.length + 1}`,
+        classNo: get('classno') || `${mod.moduleNumber}.${mod.lessons.length + 1}`,
+        title: get('title') || ('Class ' + (mod.lessons.length + 1)),
+        duration: get('duration') || 'Session',
+        description: get('description'),
+        youtube: yt,
+        pdfs: pdfList
+      });
+    }
+
+    if (hasGita) window.KD_COURSES.gita.modules = updated.gita.modules;
+    if (hasAi && updated.ai.modules.length > 0) {
+      // If AI sheet has rows, keep them and supplement with remaining curriculum if any
+      window.KD_COURSES.ai.modules = updated.ai.modules;
+    }
+
+    try {
+      localStorage.setItem('kd_sheet_courses_cache', JSON.stringify(window.KD_COURSES));
+    } catch (e) {}
+
+    if (typeof onSuccess === 'function') {
+      onSuccess(window.KD_COURSES);
+    }
+  } catch (err) {
+    console.warn('Google Sheet CSV auto-sync encountered an error, using static fallback:', err);
   }
 };
