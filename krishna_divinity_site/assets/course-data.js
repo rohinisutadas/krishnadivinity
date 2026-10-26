@@ -337,7 +337,12 @@ window.syncCoursesFromGoogleSheet = async function(onSuccess) {
 
       let yt = get('youtube') || '';
       if (yt) {
-        if (yt.includes('youtu.be/')) {
+        if (yt.includes('drive.google.com')) {
+          const driveMatch = yt.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+          if (driveMatch && driveMatch[1]) {
+            yt = `https://drive.google.com/file/d/${driveMatch[1]}/preview`;
+          }
+        } else if (yt.includes('youtu.be/')) {
           const vid = yt.split('youtu.be/')[1].split('?')[0];
           yt = `https://www.youtube.com/embed/${vid}`;
         } else if (yt.includes('watch?v=')) {
