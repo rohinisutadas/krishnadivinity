@@ -140,7 +140,42 @@ function doPost(e) {
       var requests=mutation.rows.map(function(row){return {appendCells:{sheetId:ids[row.sheet],rows:[{values:SCHEMA[row.sheet].map(function(key){var value=row.record[key]; return {userEnteredValue:typeof value==='number'?{numberValue:value}:{stringValue:String(value == null?'':value)}};})}],fields:'userEnteredValue'}};});
       Sheets.Spreadsheets.batchUpdate({requests:requests},book.getId());
     }
-    return output_({ok:true,receipt:mutation.receipt});
+
+    // Automatically create Razorpay Order for instant dynamic UPI QR code generation
+    var receipt = mutation.receipt;
+    try {
+      var keyId = settings.getProperty('RAZORPAY_KEY_ID') || 'rzp_live_TqtLjeTj9XYzsx';
+      var keySecret = settings.getProperty('RAZORPAY_KEY_SECRET') || 'waim48eDyWWgSau61OpX7vKz';
+      if (keyId && keySecret && receipt.amountDue > 0) {
+        var authHeader = 'Basic ' + Utilities.base64Encode(keyId + ':' + keySecret);
+        var orderRes = UrlFetchApp.fetch('https://api.razorpay.com/v1/orders', {
+          method: 'post',
+          headers: {
+            'Authorization': authHeader,
+            'Content-Type': 'application/json'
+          },
+          payload: JSON.stringify({
+            amount: receipt.amountDue * 100,
+            currency: 'INR',
+            receipt: receipt.registrationId.slice(0, 40),
+            notes: {
+              registration_id: receipt.registrationId,
+              plan: validated.data.plan
+            }
+          }),
+          muteHttpExceptions: true
+        });
+        var orderData = JSON.parse(orderRes.getContentText());
+        if (orderData && orderData.id) {
+          receipt.orderId = orderData.id;
+          receipt.keyId = keyId;
+        }
+      }
+    } catch (orderErr) {
+      console.error('Razorpay order creation error: ' + orderErr);
+    }
+
+    return output_({ok:true,receipt:receipt});
   } catch (err) {
     return output_({ok:false,error:'storage_unavailable'});
   } finally {

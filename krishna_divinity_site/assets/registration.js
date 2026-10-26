@@ -163,12 +163,13 @@ form.addEventListener('submit', async event => {
       button.textContent = 'Opening secure payment…';
       
       const rzpOptions = {
-        key: RAZORPAY_KEY_ID,
+        key: receipt.keyId || RAZORPAY_KEY_ID,
         amount: priceInr * 100, // paise
         currency: 'INR',
         name: 'Krishna Divinity',
         description: descriptions[chosenPlan]?.[0] || 'Course Enrollment',
         image: 'assets/logo.jpg',
+        ...(receipt.orderId ? { order_id: receipt.orderId } : {}),
         prefill: {
           name: input.full_name || '',
           email: input.email || '',

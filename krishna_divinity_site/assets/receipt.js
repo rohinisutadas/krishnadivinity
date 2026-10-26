@@ -117,12 +117,13 @@ function setupPaymentHandler(amount) {
 
     try {
       const options = {
-        key: RAZORPAY_KEY_ID,
+        key: receipt.keyId || RAZORPAY_KEY_ID,
         amount: amount * 100, // paise
         currency: 'INR',
         name: 'Krishna Divinity',
         description: names[receipt.plan] || 'Course Registration',
         image: 'assets/logo.jpg',
+        ...(receipt.orderId ? { order_id: receipt.orderId } : {}),
         prefill: {
           name: receipt.fullName || '',
           email: receipt.email || '',
