@@ -169,10 +169,13 @@ function doPost(e) {
         if (orderData && orderData.id) {
           receipt.orderId = orderData.id;
           receipt.keyId = keyId;
+        } else {
+          receipt.orderError = 'Razorpay response: ' + orderRes.getContentText();
         }
       }
     } catch (orderErr) {
       console.error('Razorpay order creation error: ' + orderErr);
+      receipt.orderError = 'Exception: ' + orderErr.toString();
     }
 
     return output_({ok:true,receipt:receipt});
@@ -328,5 +331,46 @@ function setupLessonsSheet() {
   sheet.setColumnWidth(4, 250); // title
   sheet.setColumnWidth(7, 280); // description
   Logger.log('Lessons sheet created and formatted successfully!');
+}
+
+/**
+ * One-click helper function to test Razorpay order generation & authorize network requests.
+ * Run this function from Apps Script Editor (Select 'testRazorpayOrder' -> Run).
+ * If Google shows "Authorization required", click "Review permissions" -> "Allow".
+ */
+function testRazorpayOrder() {
+  var settings = PropertiesService.getScriptProperties();
+  var keyId = settings.getProperty('RAZORPAY_KEY_ID') || 'rzp_live_TqtLjeTj9XYzsx';
+  var keySecret = settings.getProperty('RAZORPAY_KEY_SECRET') || 'waim48eDyWWgSau61OpX7vKz';
+  
+  Logger.log('Using Razorpay Key ID: ' + keyId);
+  var authHeader = 'Basic ' + Utilities.base64Encode(keyId + ':' + keySecret);
+  
+  var response = UrlFetchApp.fetch('https://api.razorpay.com/v1/orders', {
+    method: 'post',
+    headers: {
+      'Authorization': authHeader,
+      'Content-Type': 'application/json'
+    },
+    payload: JSON.stringify({
+      amount: 10800, // ₹108 in paise
+      currency: 'INR',
+      receipt: 'test_auth_' + new Date().getTime(),
+      notes: { test: 'auth_check' }
+    }),
+    muteHttpExceptions: true
+  });
+  
+  var code = response.getResponseCode();
+  var text = response.getContentText();
+  Logger.log('HTTP Status Code: ' + code);
+  Logger.log('Response: ' + text);
+  
+  if (code === 200) {
+    var data = JSON.parse(text);
+    Logger.log('SUCCESS! Order created successfully. Order ID: ' + data.id);
+  } else {
+    Logger.log('FAILED with status ' + code + ': ' + text);
+  }
 }
 
