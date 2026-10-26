@@ -1,6 +1,9 @@
-const API_BASE = (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost')
-  ? ''
-  : 'https://krishnadivinity.netlify.app';
+// Krishna Divinity - Course Registration & Direct Checkout Controller
+// Connects directly to Google Apps Script and Razorpay (100% serverless, zero external credits)
+
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzA5GyE3s-HK_ldFupRddNYzQNgrboYb4L_EVBwN-c1KB6yMoMGblVyCF2k221aWv2-Hg/exec';
+const REGISTRATION_SECRET = 'Kd_RegSecret_2026_9x8f7a6b5c4d3e2f1';
+const RAZORPAY_KEY_ID = 'rzp_live_TqtLjeTj9XYzsx';
 
 const form = document.querySelector('#registration-form');
 const fields = document.querySelector('#registration-fields');
@@ -31,7 +34,14 @@ const planPrices = {
   'ai-complete': 1080
 };
 
-let enabled = false, busy = false;
+// Map plans for Google Sheets Core schema compatibility
+const scriptPlanMap = {
+  'gita-lifetime': 'gita-complete',
+  'ai-3m': 'ai-live',
+  'ai-lifetime': 'ai-complete'
+};
+
+let busy = false;
 let requestId = crypto.randomUUID();
 const params = new URLSearchParams(location.search);
 
@@ -74,24 +84,9 @@ function showErrors(message, errors = {}) {
   if (invalid) invalid.focus();
 }
 
-async function checkAvailability() {
-  try {
-    const response = await fetch(`${API_BASE}/api/register`, { cache: 'no-store' });
-    const data = await response.json();
-    if (!response.ok || !data.enabled) throw new Error();
-    enabled = true;
-    fields.disabled = false;
-    availability.textContent = data.demo ? 'LOCAL DEMO MODE — test registrations enabled.' : 'Enrollments are open. Instant access after payment.';
-    form.dataset.demo = String(!!data.demo);
-  } catch {
-    availability.textContent = 'Enrollments are currently updating. Please return shortly.';
-    fields.disabled = true;
-  }
-}
-
 form.addEventListener('submit', async event => {
   event.preventDefault();
-  if (!enabled || busy) return;
+  if (busy) return;
   errorBox.hidden = true;
   form.querySelectorAll('.field-error').forEach(el => el.textContent = '');
   form.querySelectorAll('[aria-invalid]').forEach(el => el.removeAttribute('aria-invalid'));
@@ -103,15 +98,38 @@ form.addEventListener('submit', async event => {
   input.request_id = requestId;
   input.source = (params.get('source') || 'website').slice(0, 80);
 
+  // Client-side phone format validation (+country code required)
+  const phoneVal = (input.whatsapp || '').trim().replace(/\s+/g, '');
+  if (!/^\+\d{8,15}$/.test(phoneVal)) {
+    showErrors('Please include your country code with your WhatsApp number (e.g. +91 98765 43210).', {
+      whatsapp: 'Include country code, e.g. +91 for India'
+    });
+    return;
+  }
+  input.whatsapp = phoneVal;
+
   busy = true;
   button.disabled = true;
-  button.textContent = 'Saving details…';
+  button.textContent = 'Saving enrollment…';
 
   try {
-    const response = await fetch(`${API_BASE}/api/register`, {
+    const chosenPlan = input.plan || 'gita-lifetime';
+    const priceInr = planPrices[chosenPlan] || 108;
+
+    // Direct atomic registration to Google Apps Script (Text/Plain to eliminate CORS preflight)
+    const scriptRegistration = {
+      ...input,
+      plan: scriptPlanMap[chosenPlan] || chosenPlan
+    };
+
+    const response = await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(input),
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        secret: REGISTRATION_SECRET,
+        registration: scriptRegistration
+      }),
+      redirect: 'follow',
       signal: AbortSignal.timeout(20000)
     });
 
@@ -119,105 +137,115 @@ form.addEventListener('submit', async event => {
     try {
       result = await response.json();
     } catch {
-      throw new Error('Registration could not be confirmed. Please try again.');
+      throw new Error('Registration could not be confirmed. Please check your connection and retry.');
     }
 
-    if (!response.ok || !result.ok) {
-      showErrors(result.error || 'Please try again.', result.fields);
+    if (!response.ok || !result.ok || !result.receipt?.registrationId) {
+      showErrors(result.error || 'We could not save your registration. Please check your details and retry.', result.fields);
       return;
     }
 
     const receipt = {
       ...result.receipt,
+      plan: chosenPlan, // preserve user's friendly plan identifier
+      amountDue: priceInr,
       fullName: input.full_name,
       email: input.email,
-      whatsapp: input.whatsapp,
-      demo: form.dataset.demo === 'true'
+      whatsapp: input.whatsapp
     };
 
     try {
       sessionStorage.setItem('kd_receipt', JSON.stringify(receipt));
     } catch {}
 
-    // Check if we can open Razorpay immediately
-    const isDemo = form.dataset.demo === 'true';
-    if (!isDemo && typeof Razorpay !== 'undefined') {
-      button.textContent = 'Opening secure checkout…';
-      try {
-        const orderRes = await fetch(`${API_BASE}/api/create-order`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ registrationId: receipt.registrationId, plan: receipt.plan })
-        });
-        const orderData = await orderRes.json();
-        if (orderRes.ok && orderData.ok && orderData.orderId) {
-          const rzpOptions = {
-            key: orderData.keyId,
-            amount: orderData.amount,
-            currency: orderData.currency || 'INR',
-            name: 'Krishna Divinity',
-            description: descriptions[receipt.plan]?.[0] || 'Course Enrollment',
-            order_id: orderData.orderId,
-            prefill: {
-              name: receipt.fullName || '',
-              email: receipt.email || '',
-              contact: receipt.whatsapp || ''
-            },
-            theme: { color: '#b45309' },
-            modal: {
-              ondismiss: function () {
-                location.href = 'registration-success.html';
-              }
-            },
-            handler: async function (payResp) {
-              button.textContent = 'Confirming enrollment…';
-              try {
-                await fetch(`${API_BASE}/api/verify-payment`, {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    razorpay_order_id: payResp.razorpay_order_id,
-                    razorpay_payment_id: payResp.razorpay_payment_id,
-                    razorpay_signature: payResp.razorpay_signature,
-                    registrationId: receipt.registrationId,
-                    plan: receipt.plan
-                  })
-                });
-              } catch {}
+    // Open Razorpay Standard Checkout directly
+    if (typeof Razorpay !== 'undefined') {
+      button.textContent = 'Opening secure payment…';
+      
+      const rzpOptions = {
+        key: RAZORPAY_KEY_ID,
+        amount: priceInr * 100, // paise
+        currency: 'INR',
+        name: 'Krishna Divinity',
+        description: descriptions[chosenPlan]?.[0] || 'Course Enrollment',
+        image: 'assets/logo.jpg',
+        prefill: {
+          name: input.full_name || '',
+          email: input.email || '',
+          contact: input.whatsapp || ''
+        },
+        notes: {
+          registration_id: receipt.registrationId,
+          plan: chosenPlan
+        },
+        theme: { color: '#b45309' },
+        modal: {
+          ondismiss: function () {
+            // Student closed Razorpay; redirect to success page where receipt shows pending payment button
+            location.href = 'registration-success.html';
+          }
+        },
+        handler: async function (payResp) {
+          button.textContent = 'Confirming enrollment…';
+          
+          // Send payment confirmation directly to Google Apps Script
+          try {
+            await fetch(GOOGLE_SCRIPT_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+              body: JSON.stringify({
+                secret: REGISTRATION_SECRET,
+                payment: {
+                  registration_id: receipt.registrationId,
+                  provider_payment_id: payResp.razorpay_payment_id,
+                  amount_inr: priceInr,
+                  currency: 'INR',
+                  method: 'razorpay',
+                  status: 'captured'
+                }
+              }),
+              redirect: 'follow'
+            });
+          } catch (syncErr) {
+            console.warn('Payment recording background sync note:', syncErr);
+          }
 
-              // Save student session for portal access
-              try {
-                const isAi = receipt.plan?.startsWith('ai');
-                const studentSession = {
-                  fullName: receipt.fullName,
-                  email: receipt.email,
-                  whatsapp: receipt.whatsapp,
-                  enrolledCourses: [{
-                    courseId: isAi ? 'ai' : 'gita',
-                    courseName: isAi ? 'Practical AI Course' : 'Bhagavad Gita Foundation Course',
-                    plan: receipt.plan,
-                    validity: receipt.validity || 'lifetime',
-                    validUntil: receipt.validUntil || (receipt.plan === 'ai-3m' ? new Date(Date.now() + 90*86400000).toISOString().slice(0,10) : (receipt.plan === 'ai-1y' ? new Date(Date.now() + 365*86400000).toISOString().slice(0,10) : 'lifetime'))
-                  }]
-                };
-                localStorage.setItem('kd_student_session', JSON.stringify(studentSession));
-                sessionStorage.setItem('kd_receipt', JSON.stringify({ ...receipt, status: 'confirmed', paymentId: payResp.razorpay_payment_id }));
-              } catch {}
+          // Save student session in localStorage for immediate access to Portal & Classroom
+          try {
+            const isAi = chosenPlan.startsWith('ai');
+            const studentSession = {
+              fullName: input.full_name,
+              email: input.email,
+              whatsapp: input.whatsapp,
+              enrolledCourses: [{
+                courseId: isAi ? 'ai' : 'gita',
+                courseName: isAi ? 'Practical AI Course' : 'Bhagavad Gita Foundation Course',
+                plan: chosenPlan,
+                validity: chosenPlan === 'ai-3m' ? '3_months' : (chosenPlan === 'ai-1y' ? '1_year' : 'lifetime'),
+                validUntil: chosenPlan === 'ai-3m' ? new Date(Date.now() + 90 * 86400000).toISOString().slice(0, 10) : (chosenPlan === 'ai-1y' ? new Date(Date.now() + 365 * 86400000).toISOString().slice(0, 10) : 'lifetime')
+              }]
+            };
+            localStorage.setItem('kd_student_session', JSON.stringify(studentSession));
+            sessionStorage.setItem('kd_receipt', JSON.stringify({
+              ...receipt,
+              status: 'confirmed',
+              paymentId: payResp.razorpay_payment_id
+            }));
+          } catch {}
 
-              location.href = 'registration-success.html';
-            }
-          };
-
-          const rzp = new Razorpay(rzpOptions);
-          rzp.open();
-          return;
+          location.href = 'registration-success.html';
         }
-      } catch (err) {
-        console.error('Razorpay checkout open failed:', err);
-      }
+      };
+
+      const rzp = new Razorpay(rzpOptions);
+      rzp.on('payment.failed', function (resp) {
+        showErrors('Payment was not completed: ' + (resp.error?.description || 'Please try another payment method.'));
+      });
+      rzp.open();
+      return;
     }
 
-    // Default redirect to registration-success
+    // Fallback if Razorpay SDK hasn't loaded yet
     location.href = 'registration-success.html';
   } catch (err) {
     showErrors(err.message || 'We could not confirm the save. Please retry with the same details.');
@@ -228,4 +256,10 @@ form.addEventListener('submit', async event => {
   }
 });
 
-checkAvailability();
+// Set active status immediately
+if (availability) {
+  availability.textContent = 'Enrollments are open. Instant access after payment.';
+}
+if (fields) {
+  fields.disabled = false;
+}

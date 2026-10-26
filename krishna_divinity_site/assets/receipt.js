@@ -1,6 +1,9 @@
-const API_BASE = (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost')
-  ? ''
-  : 'https://krishnadivinity.netlify.app';
+// Krishna Divinity - Student Enrollment Receipt & Direct Payment Controller
+// Connects directly to Google Apps Script and Razorpay (100% serverless, zero external credits)
+
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzA5GyE3s-HK_ldFupRddNYzQNgrboYb4L_EVBwN-c1KB6yMoMGblVyCF2k221aWv2-Hg/exec';
+const REGISTRATION_SECRET = 'Kd_RegSecret_2026_9x8f7a6b5c4d3e2f1';
+const RAZORPAY_KEY_ID = 'rzp_live_TqtLjeTj9XYzsx';
 
 let receipt;
 try { receipt = JSON.parse(sessionStorage.getItem('kd_receipt')); } catch {}
@@ -88,8 +91,8 @@ function showPaymentSuccess(paymentId) {
         courseId: isAi ? 'ai' : 'gita',
         courseName: isAi ? 'Practical AI Course' : 'Bhagavad Gita Foundation Course',
         plan: receipt.plan,
-        validity: receipt.validity || 'lifetime',
-        validUntil: receipt.validUntil || (receipt.plan === 'ai-3m' ? calculateFutureDate(90) : (receipt.plan === 'ai-1y' ? calculateFutureDate(365) : 'lifetime'))
+        validity: receipt.plan === 'ai-3m' ? '3_months' : (receipt.plan === 'ai-1y' ? '1_year' : 'lifetime'),
+        validUntil: receipt.plan === 'ai-3m' ? calculateFutureDate(90) : (receipt.plan === 'ai-1y' ? calculateFutureDate(365) : 'lifetime')
       }]
     };
     localStorage.setItem('kd_student_session', JSON.stringify(studentSession));
@@ -113,27 +116,21 @@ function setupPaymentHandler(amount) {
     payStatusEl.textContent = 'Connecting to Razorpay…';
 
     try {
-      const orderRes = await fetch(`${API_BASE}/api/create-order`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ registrationId: receipt.registrationId, plan: receipt.plan })
-      });
-      const orderData = await orderRes.json();
-      if (!orderRes.ok || !orderData.ok || !orderData.orderId) {
-        throw new Error(orderData.error || 'Could not start payment.');
-      }
-
       const options = {
-        key: orderData.keyId,
-        amount: orderData.amount,
-        currency: orderData.currency || 'INR',
+        key: RAZORPAY_KEY_ID,
+        amount: amount * 100, // paise
+        currency: 'INR',
         name: 'Krishna Divinity',
         description: names[receipt.plan] || 'Course Registration',
-        order_id: orderData.orderId,
+        image: 'assets/logo.jpg',
         prefill: {
           name: receipt.fullName || '',
           email: receipt.email || '',
           contact: receipt.whatsapp || ''
+        },
+        notes: {
+          registration_id: receipt.registrationId,
+          plan: receipt.plan
         },
         theme: { color: '#b45309' },
         modal: {
@@ -143,33 +140,35 @@ function setupPaymentHandler(amount) {
             payStatusEl.textContent = 'Payment cancelled. You can try again whenever ready.';
           }
         },
-        handler: async function (response) {
-          payBtn.textContent = 'Verifying payment…';
-          payStatusEl.textContent = 'Verifying your payment with the server…';
+        handler: async function (payResp) {
+          payBtn.textContent = 'Confirming enrollment…';
+          payStatusEl.textContent = 'Confirming payment with the student records…';
+
           try {
-            const verifyRes = await fetch(`${API_BASE}/api/verify-payment`, {
+            await fetch(GOOGLE_SCRIPT_URL, {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
               body: JSON.stringify({
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-                registrationId: receipt.registrationId,
-                plan: receipt.plan
-              })
+                secret: REGISTRATION_SECRET,
+                payment: {
+                  registration_id: receipt.registrationId,
+                  provider_payment_id: payResp.razorpay_payment_id,
+                  amount_inr: amount,
+                  currency: 'INR',
+                  method: 'razorpay',
+                  status: 'captured'
+                }
+              }),
+              redirect: 'follow'
             });
-            const verifyData = await verifyRes.json();
-            if (!verifyRes.ok || !verifyData.ok) {
-              throw new Error(verifyData.error || 'Verification failed.');
-            }
-            // Update storage
-            const updated = { ...receipt, status: 'confirmed', paymentId: response.razorpay_payment_id };
-            sessionStorage.setItem('kd_receipt', JSON.stringify(updated));
-            showPaymentSuccess(response.razorpay_payment_id);
-          } catch (err) {
-            payStatusEl.textContent = 'Payment received by Razorpay (ID: ' + response.razorpay_payment_id + '). Confirmation will reflect shortly in your record.';
-            showPaymentSuccess(response.razorpay_payment_id);
+          } catch (syncErr) {
+            console.warn('Payment recording note:', syncErr);
           }
+
+          // Update storage
+          const updated = { ...receipt, status: 'confirmed', paymentId: payResp.razorpay_payment_id };
+          sessionStorage.setItem('kd_receipt', JSON.stringify(updated));
+          showPaymentSuccess(payResp.razorpay_payment_id);
         }
       };
 
@@ -177,7 +176,7 @@ function setupPaymentHandler(amount) {
       rzp.on('payment.failed', function (resp) {
         payBtn.disabled = false;
         payBtn.textContent = `Retry Pay ₹${amount} Online`;
-        payStatusEl.textContent = 'Payment failed: ' + (resp.error.description || 'Please try another payment method.');
+        payStatusEl.textContent = 'Payment failed: ' + (resp.error?.description || 'Please try another payment method.');
       });
       rzp.open();
     } catch (err) {
