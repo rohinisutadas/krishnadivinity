@@ -409,20 +409,23 @@
         }
       }
 
+      // Filter out empty or placeholder root links (e.g. https://drive.google.com/)
+      const validPdfs = pdfList.filter(item => item && item.url && item.url.trim() !== 'https://drive.google.com/' && item.url.trim() !== 'https://drive.google.com');
+
       const pdfContainer = document.getElementById('pdf-buttons-container');
       pdfContainer.innerHTML = '';
-      if (pdfList.length === 0) {
-        pdfContainer.innerHTML = '<span style="font-size:13px;color:#94a3b8;font-style:italic;">No PDF attachments for this class yet.</span>';
+      if (validPdfs.length === 0) {
+        pdfContainer.innerHTML = '<span style="font-size:13px;color:#94a3b8;font-style:italic;">Study notes and materials will be provided during live sessions.</span>';
       } else {
-        pdfList.forEach((item, pIdx) => {
-          if (!item.url) return;
+        validPdfs.forEach((item, pIdx) => {
           const btn = document.createElement('a');
           btn.href = item.url;
           btn.target = '_blank';
           btn.rel = 'noopener';
-          const colorClass = pIdx === 0 ? 'btn-pdf' : (pIdx === 1 ? 'btn-pdf btn-pdf-2' : 'btn-pdf btn-pdf-3');
+          const isQuiz = (item.label || '').toLowerCase().includes('quiz') || item.url.includes('forms.gle');
+          const colorClass = isQuiz ? 'btn-pdf btn-pdf-3' : (pIdx === 0 ? 'btn-pdf' : 'btn-pdf btn-pdf-2');
           btn.className = colorClass;
-          btn.innerHTML = `<span>📄</span> ${item.label || ('PDF ' + (pIdx + 1) + ' Download')}`;
+          btn.innerHTML = `<span>${isQuiz ? '📝' : '📄'}</span> ${item.label || ('PDF ' + (pIdx + 1) + ' Download')}`;
           pdfContainer.appendChild(btn);
         });
       }

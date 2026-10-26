@@ -3,13 +3,30 @@ import {PLANS} from '../../backend/core.mjs';
 const defaultOrigins = [
   'https://krishnadivinity.in',
   'https://www.krishnadivinity.in',
+  'https://krishna-divinity.web.app',
+  'https://krishna-divinity.firebaseapp.com',
   'https://krishnadivinity.netlify.app',
   'https://luminous-mousse-726864.netlify.app',
-  'http://127.0.0.1:4174'
+  'http://127.0.0.1:4174',
+  'http://localhost:4174'
 ];
 
+function isOriginAllowed(reqOrigin, origins) {
+  if (!reqOrigin) return true;
+  if (origins.includes(reqOrigin)) return true;
+  try {
+    const url = new URL(reqOrigin);
+    if (url.hostname === 'krishnadivinity.in' || url.hostname.endsWith('.krishnadivinity.in')) return true;
+    if (url.hostname === 'krishna-divinity.web.app' || url.hostname === 'krishna-divinity.firebaseapp.com') return true;
+    if (url.hostname.endsWith('.netlify.app')) return true;
+    if (url.hostname === '127.0.0.1' || url.hostname === 'localhost') return true;
+  } catch {}
+  return false;
+}
+
 function getCorsHeaders(reqOrigin, origins) {
-  const origin = reqOrigin && origins.includes(reqOrigin) ? reqOrigin : origins[0];
+  const allowed = isOriginAllowed(reqOrigin, origins);
+  const origin = (allowed && reqOrigin) ? reqOrigin : (origins[0] || '*');
   return {
     'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
@@ -43,7 +60,7 @@ export function createOrderHandler({env = process.env, fetcher = fetch} = {}) {
       return json({error: 'Method not allowed.'}, 405, corsHeaders);
     }
 
-    if (reqOrigin && !origins.includes(reqOrigin)) {
+    if (reqOrigin && !isOriginAllowed(reqOrigin, origins)) {
       return json({error: 'Please submit from the course website.'}, 403, corsHeaders);
     }
     
