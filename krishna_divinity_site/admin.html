@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Admin Dashboard & Manual Enrollment | Krishna Divinity</title>
+  <link rel="icon" type="image/jpeg" href="assets/logo.jpg">
+  <link rel="stylesheet" href="assets/styles.css?v=2">
+  <style>
+    body { background-color: #f8fafc; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+    .admin-container { max-width: 900px; margin: 0 auto; padding: 24px 16px 60px; }
+    .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+    .admin-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 26px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); margin-bottom: 24px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 680px) { .form-grid { grid-template-columns: 1fr; } }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 6px; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; box-sizing: border-box; background: #fff; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #b45309; outline: none; box-shadow: 0 0 0 3px rgba(180,83,9,0.1); }
+    .btn-admin { background: #b45309; color: #ffffff; padding: 12px 20px; font-size: 15px; font-weight: 700; border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s; }
+    .btn-admin:hover { background: #92400e; }
+    .btn-admin:disabled { opacity: 0.6; cursor: not-allowed; }
+    .success-box { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 20px; margin-top: 20px; }
+    .quick-link-pill { display: inline-flex; align-items: center; gap: 6px; background: #f1f5f9; padding: 8px 14px; border-radius: 8px; color: #1e293b; text-decoration: none; font-size: 13px; font-weight: 600; border: 1px solid #e2e8f0; transition: all 0.15s; }
+    .quick-link-pill:hover { background: #e2e8f0; }
+    .badge-cash { background: #dcfce7; color: #15803d; font-weight: 700; padding: 4px 10px; border-radius: 6px; font-size: 12px; }
+    .whatsapp-btn { background: #16a34a; color: #fff; text-decoration: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; font-size: 14px; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 4px rgba(22,163,74,0.3); }
+    .whatsapp-btn:hover { background: #15803d; color: #fff; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container nav">
+      <a class="brand" href="index.html">
+        <img src="assets/logo.jpg" alt="Krishna Divinity" class="brand-logo" width="38" height="38">
+        <span>KRISHNA DIVINITY<small>Course Administration Panel</small></span>
+      </a>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <a href="portal.html" class="btn btn-light" style="padding:6px 12px;font-size:13px;">🎓 Student Portal</a>
+        <a href="classroom.html?course=gita" class="btn btn-light" style="padding:6px 12px;font-size:13px;">Classroom</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="admin-container">
+      
+      <!-- Password Gate Section -->
+      <div id="admin-auth-section" class="admin-card" style="max-width:440px;margin:50px auto;text-align:center;">
+        <span class="badge" style="background:#fef3c7;color:#92400e;">Restricted Access</span>
+        <h2 style="margin:12px 0 6px;font-size:24px;">Admin Verification</h2>
+        <p class="note" style="margin-bottom:20px;">Enter your admin security PIN / password to access the manual enrollment console.</p>
+        
+        <form id="admin-auth-form">
+          <input type="password" id="admin-pin-input" placeholder="Enter Admin Password or PIN" required style="width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:8px;font-size:15px;margin-bottom:14px;box-sizing:border-box;text-align:center;">
+          <button type="submit" class="btn-admin" style="width:100%;">Unlock Admin Console</button>
+        </form>
+        <p id="auth-error" class="field-error" style="display:none;margin-top:10px;"></p>
+        <p class="note" style="font-size:12px;margin-top:16px;color:#94a3b8;">Default PIN: <code>krishna108</code> or your registration secret.</p>
+      </div>
+
+      <!-- Main Admin Dashboard (Shown after unlock) -->
+      <div id="admin-main-section" hidden>
+        
+        <div class="admin-header">
+          <div>
+            <span class="eyebrow">Hare Krishna Admin 🙏</span>
+            <h1 style="margin:4px 0 2px;font-size:26px;">Course Access & Manual Enrollment</h1>
+            <p class="note" style="margin:0;">Grant immediate course access to students who paid via Cash, offline UPI, or scholarship.</p>
+          </div>
+          <div>
+            <button id="admin-lock-btn" class="btn btn-light" style="padding:6px 14px;font-size:13px;">🔒 Lock Console</button>
+          </div>
+        </div>
+
+        <!-- Quick Links Hub -->
+        <div class="admin-card" style="padding:16px 20px;background:#f8fafc;">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+            <strong style="font-size:14px;color:#334155;">⚡ Direct Resource Links:</strong>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+              <a href="https://docs.google.com/spreadsheets/d/1PgupS-wlHJcqDAsP8HskS9YMysHL2Mqf8yyy2QAK3dA/edit" target="_blank" rel="noopener" class="quick-link-pill">
+                📊 Open Live Google Sheet
+              </a>
+              <a href="https://dashboard.razorpay.com" target="_blank" rel="noopener" class="quick-link-pill">
+                💳 Razorpay Dashboard
+              </a>
+              <a href="https://t.me/+zrMP1VqfFBQzNjE1" target="_blank" rel="noopener" class="quick-link-pill">
+                ✈ Telegram Community
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Manual Enrollment Form -->
+        <div class="admin-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #e2e8f0;padding-bottom:14px;margin-bottom:20px;">
+            <div>
+              <h2 style="margin:0 0 4px;font-size:20px;color:#0f172a;">➕ Grant Course Access (Manual / Cash Student)</h2>
+              <p class="note" style="margin:0;">Fills their record in Google Sheet as confirmed and generates a 1-click WhatsApp course pass.</p>
+            </div>
+            <span class="badge-cash">Instant Activation</span>
+          </div>
+
+          <form id="manual-enroll-form">
+            <div class="form-grid">
+              
+              <div class="form-group">
+                <label for="student-name">Student Full Name <span style="color:#dc2626;">*</span></label>
+                <input type="text" id="student-name" placeholder="e.g. Ramesh Kumar" required>
+              </div>
+
+              <div class="form-group">
+                <label for="student-phone">WhatsApp Number <span style="color:#dc2626;">*</span></label>
+                <input type="tel" id="student-phone" placeholder="e.g. 9876543210 or +919876543210" required>
+              </div>
+
+              <div class="form-group">
+                <label for="student-email">Email Address <small style="color:#64748b;">(Optional)</small></label>
+                <input type="email" id="student-email" placeholder="e.g. ramesh@gmail.com (Leave blank if not provided)">
+              </div>
+
+              <div class="form-group">
+                <label for="student-city">City / State <small style="color:#64748b;">(Optional)</small></label>
+                <input type="text" id="student-city" placeholder="e.g. Vrindavan, Mathura">
+              </div>
+
+              <div class="form-group">
+                <label for="course-plan-select">Course & Access Plan <span style="color:#dc2626;">*</span></label>
+                <select id="course-plan-select" required>
+                  <option value="gita-lifetime" selected>🕉️ Bhagavad Gita Foundation Course (Lifetime — ₹108)</option>
+                  <option value="ai-3m">🤖 Practical AI Course (3 Months Access — ₹108)</option>
+                  <option value="ai-1y">🤖 Practical AI Course (1 Year Access — ₹500)</option>
+                  <option value="ai-lifetime">🤖 Practical AI Course (Lifetime Access — ₹1,080)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="payment-mode-select">Payment Method <span style="color:#dc2626;">*</span></label>
+                <select id="payment-mode-select" required>
+                  <option value="cash" selected>💵 Cash in Hand (हाथ में नकद)</option>
+                  <option value="offline_upi">⚡ Direct UPI (GPay / PhonePe / Paytm to Roshan Verma)</option>
+                  <option value="bank_transfer">🏦 Direct Bank Transfer / NEFT / IMPS</option>
+                  <option value="complimentary">🎁 Complimentary / Free Access / Scholarship</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="amount-paid">Amount Received (₹)</label>
+                <input type="number" id="amount-paid" value="108" min="0">
+              </div>
+
+              <div class="form-group">
+                <label for="payment-remarks">Reference / Remarks <small style="color:#64748b;">(Optional)</small></label>
+                <input type="text" id="payment-remarks" placeholder="e.g. Received at temple / GPay Txn ID">
+              </div>
+
+            </div>
+
+            <div style="margin-top:16px;">
+              <button type="submit" id="submit-enroll-btn" class="btn-admin" style="font-size:16px;padding:12px 28px;">
+                ⚡ Grant Course Access & Activate Seat
+              </button>
+            </div>
+            <p id="enroll-error" class="field-error" style="display:none;margin-top:12px;"></p>
+          </form>
+
+          <!-- Result Box (Hidden until enrolled) -->
+          <div id="enroll-result-box" class="success-box" hidden>
+            <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;">
+              <span style="font-size:32px;">🎉</span>
+              <div>
+                <strong style="font-size:18px;color:#166534;display:block;" id="result-success-title">Course Access Successfully Activated!</strong>
+                <span style="font-size:13px;color:#15803d;" id="result-reg-id">Registration ID: REG-...</span>
+              </div>
+            </div>
+
+            <div style="background:#ffffff;border:1px solid #dcfce7;border-radius:10px;padding:16px;margin-bottom:16px;">
+              <h4 style="margin:0 0 8px;font-size:14px;color:#14532d;">📋 Student Access Information:</h4>
+              <p style="margin:2px 0;font-size:13px;"><strong>Student:</strong> <span id="res-student-name"></span> (<span id="res-student-phone"></span>)</p>
+              <p style="margin:2px 0;font-size:13px;"><strong>Course:</strong> <span id="res-course-name"></span></p>
+              <p style="margin:2px 0;font-size:13px;"><strong>Payment:</strong> <span id="res-payment-mode"></span> (₹<span id="res-amount"></span>)</p>
+              <p style="margin:2px 0;font-size:13px;"><strong>Direct Classroom URL:</strong> <a id="res-classroom-url" href="#" target="_blank" style="color:#b45309;font-weight:600;"></a></p>
+            </div>
+
+            <!-- Ready-to-Send WhatsApp Invite -->
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+              <a id="res-whatsapp-link" href="#" target="_blank" rel="noopener" class="whatsapp-btn">
+                💬 Send Welcome Pass on WhatsApp
+              </a>
+              <button type="button" id="copy-welcome-msg-btn" class="btn btn-light" style="padding:10px 16px;font-weight:600;">
+                📋 Copy Welcome Message
+              </button>
+              <button type="button" id="enroll-another-btn" class="btn btn-light" style="padding:10px 16px;">
+                ➕ Enroll Another Student
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Instructions Card -->
+        <div class="admin-card">
+          <h3 style="margin:0 0 10px;font-size:16px;color:#0f172a;">💡 How Student Access Works:</h3>
+          <ul style="font-size:14px;line-height:1.7;color:#475569;margin:0;padding-left:20px;">
+            <li><strong>Classroom Access:</strong> Once enrolled here, student direct classroom link par click karke turant saari videos aur PDFs access kar sakte hain.</li>
+            <li><strong>Student Portal Login:</strong> Student kabhi bhi <a href="portal.html" target="_blank" style="color:#b45309;">portal.html</a> par apna WhatsApp number enter karke apne dashboard me ja sakta hai.</li>
+            <li><strong>Google Sheet Record:</strong> Student ka record automatically aapke Google Sheet ke <code>Students</code>, <code>Registrations</code> (status = confirmed), aur <code>Payments</code> sheet me save ho jata hai.</li>
+            <li><strong>Telegram Community:</strong> WhatsApp message me Telegram supergroup link pehle se included hai taaki student live Zoom class timing updates pa sake.</li>
+          </ul>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+        <div>© 2026 Krishna Divinity Administration.</div>
+        <div>
+          <a href="index.html">Home</a> · <a href="portal.html">Student Portal</a> · <a href="classroom.html?course=gita">Classroom</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/admin.js"></script>
+</body>
+</html>
