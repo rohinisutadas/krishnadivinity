@@ -94,6 +94,10 @@ function doPost(e) {
 
     if (payload.payment) {
       if (!payload.payment.registration_id || !payload.payment.provider_payment_id) return output_({ok:false,error:'invalid_payment'});
+      var regLookup = (db.Registrations || []).find(function(r){ return r.registration_id === payload.payment.registration_id; });
+      if (regLookup && !payload.payment.amount_inr) {
+        payload.payment.amount_inr = Number(regLookup.amount_due_inr) || 108;
+      }
       var payMutation = paymentMutation(payload.payment, db, new Date(), function(){ return Utilities.getUuid(); });
       var regRowIdx = -1;
       for (var r = 0; r < db.Registrations.length; r++) {
