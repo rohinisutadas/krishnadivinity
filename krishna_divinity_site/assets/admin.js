@@ -26,7 +26,7 @@
 
   const planPriceMap = {
     'gita-lifetime': 108,
-    'ai-3m': 108,
+    'ai-3m': 110,
     'ai-1y': 500,
     'ai-lifetime': 1080
   };

@@ -323,15 +323,24 @@ window.syncCoursesFromGoogleSheet = async function(onSuccess) {
       }
 
       const pdfList = [];
-      const p1 = get('pdf1') || get('pdf');
+      const cleanUrl = (raw) => {
+        if (!raw) return '';
+        let u = raw.trim();
+        if (/^[a-zA-Z0-9_-]{25,}$/.test(u)) {
+          u = `https://drive.google.com/file/d/${u}/view?usp=sharing`;
+        }
+        return u;
+      };
+
+      const p1 = cleanUrl(get('pdf1') || get('pdf'));
       const p1L = get('pdflabel1') || 'PDF 1: Class Notes';
       if (p1) pdfList.push({ url: p1, label: p1L });
 
-      const p2 = get('pdf2');
+      const p2 = cleanUrl(get('pdf2'));
       const p2L = get('pdflabel2') || 'PDF 2: Study Material';
       if (p2) pdfList.push({ url: p2, label: p2L });
 
-      const p3 = get('pdf3');
+      const p3 = cleanUrl(get('pdf3'));
       const p3L = get('pdflabel3') || 'PDF 3: Reference Guide';
       if (p3) pdfList.push({ url: p3, label: p3L });
 

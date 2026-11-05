@@ -15,22 +15,22 @@ const errorBox = document.querySelector('#form-error');
 
 const descriptions = {
   'gita-lifetime': ['Bhagavad Gita Foundation Course — ₹108 (Lifetime Access)', 'Complete course access: live classes, class recordings, and downloadable PDF study notes.'],
-  'ai-3m': ['Practical AI Course — ₹108 (3 Months Access)', '10 practical modules, live demonstrations, recordings, and PDF notes with 3 months access.'],
+  'ai-3m': ['Practical AI Course — ₹110 (3 Months Access)', '10 practical modules, live demonstrations, recordings, and PDF notes with 3 months access.'],
   'ai-1y': ['Practical AI Course — ₹500 (1 Year Access)', '10 practical modules, recordings, and PDF notes with 1 full year access.'],
   'ai-lifetime': ['Practical AI Course — ₹1,080 (Lifetime Access)', 'Complete 10-module AI course with lifetime access, PDF cheatsheets, and all future updates.'],
   // Legacy plan compatibility
   'gita-complete': ['Bhagavad Gita Foundation Course — ₹108 (Lifetime Access)', 'Complete course access with lifetime validity.'],
-  'ai-live': ['Practical AI Course — ₹108 (3 Months Access)', '10 live modules with 3 months access.'],
+  'ai-live': ['Practical AI Course — ₹110 (3 Months Access)', '10 live modules with 3 months access.'],
   'ai-complete': ['Practical AI Course — ₹1,080 (Lifetime Access)', '10 live modules with lifetime access.']
 };
 
 const planPrices = {
   'gita-lifetime': 108,
-  'ai-3m': 108,
+  'ai-3m': 110,
   'ai-1y': 500,
   'ai-lifetime': 1080,
   'gita-complete': 108,
-  'ai-live': 108,
+  'ai-live': 110,
   'ai-complete': 1080
 };
 

@@ -22,7 +22,7 @@ test('required email/city/consent, international phone, DOB calendar validation'
 test('server owns prices and payment status; no open batch creates a waitlist',()=>{
   const data=validate({...input,amount_due_inr:1,status:'confirmed'},now).data;
   const m=registrationMutation(data,empty(),now,id);
-  assert.equal(m.receipt.amountDue,108);assert.equal(m.receipt.status,'waitlisted');
+  assert.equal(m.receipt.amountDue,110);assert.equal(m.receipt.status,'waitlisted');
   assert.equal(m.rows.length,2);assert.equal(m.rows[0].record.date_of_birth,'');
 });
 test('earliest available future batch, capacity, course isolation and malformed dates',()=>{
@@ -61,7 +61,7 @@ test('endpoint confirms only successful storage, and never returns backend error
   const fail=await failed(request());assert.equal(fail.status,502);assert.ok(!(await fail.text()).includes('sensitive'));
   const good=createHandler({env,fetcher:async(url,opts)=>{
     const posted=JSON.parse(opts.body);assert.equal(posted.secret,env.REGISTRATION_SECRET);assert.equal(posted.registration.email,input.email);
-    return new Response(JSON.stringify({ok:true,receipt:{registrationId:'REG-test',status:'waitlisted',plan:'ai-live',amountDue:108}}));
+    return new Response(JSON.stringify({ok:true,receipt:{registrationId:'REG-test',status:'waitlisted',plan:'ai-live',amountDue:110}}));
   }});
   assert.equal((await good(request())).status,200);
 });

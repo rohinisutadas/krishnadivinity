@@ -43,6 +43,8 @@
     .btn-pdf-2:hover { background: #0369a1; }
     .btn-pdf-3 { background: #7c3aed; box-shadow: 0 2px 4px rgba(124,58,237,0.2); }
     .btn-pdf-3:hover { background: #6d28d9; }
+    .btn-ppt { background: #ea580c; box-shadow: 0 2px 4px rgba(234,88,12,0.2); }
+    .btn-ppt:hover { background: #c2410c; }
     .btn-telegram-pill { background: #0284c7; color: #ffffff; padding: 6px 14px; border-radius: 20px; text-decoration: none; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
     .nav-arrow-btn { padding: 8px 16px; border: 1px solid #cbd5e1; background: #ffffff; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; }
     .nav-arrow-btn:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -449,14 +451,53 @@
         pdfContainer.innerHTML = '<span style="font-size:13px;color:#94a3b8;font-style:italic;">Study notes and materials will be provided during live sessions.</span>';
       } else {
         validPdfs.forEach((item, pIdx) => {
+          let url = (item.url || '').trim();
+          // Auto-convert raw Google Drive file ID if entered
+          if (/^[a-zA-Z0-9_-]{25,}$/.test(url)) {
+            url = `https://drive.google.com/file/d/${url}/view?usp=sharing`;
+          }
+
+          const hasHttp = /^https?:\/\//i.test(url);
+          const lbl = (item.label || '').toLowerCase();
+          const isQuiz = lbl.includes('quiz') || url.includes('forms.gle');
+          const isPpt = lbl.includes('ppt') || lbl.includes('slide') || lbl.includes('presentation') || 
+                        url.toLowerCase().endsWith('.ppt') || url.toLowerCase().endsWith('.pptx') || url.includes('presentation');
+
+          let icon = '📄';
+          let colorClass = pIdx === 0 ? 'btn-pdf' : 'btn-pdf btn-pdf-2';
+          if (isQuiz) {
+            icon = '📝';
+            colorClass = 'btn-pdf btn-pdf-3';
+          } else if (isPpt) {
+            icon = '📊';
+            colorClass = 'btn-pdf btn-ppt';
+          }
+
           const btn = document.createElement('a');
-          btn.href = item.url;
-          btn.target = '_blank';
-          btn.rel = 'noopener';
-          const isQuiz = (item.label || '').toLowerCase().includes('quiz') || item.url.includes('forms.gle');
-          const colorClass = isQuiz ? 'btn-pdf btn-pdf-3' : (pIdx === 0 ? 'btn-pdf' : 'btn-pdf btn-pdf-2');
           btn.className = colorClass;
-          btn.innerHTML = `<span>${isQuiz ? '📝' : '📄'}</span> ${item.label || ('PDF ' + (pIdx + 1) + ' Download')}`;
+          btn.innerHTML = `<span>${icon}</span> ${item.label || (isPpt ? 'PPT Slides' : ('PDF ' + (pIdx + 1) + ' Download'))}`;
+
+          if (hasHttp) {
+            btn.href = url;
+            btn.target = '_blank';
+            btn.rel = 'noopener';
+          } else {
+            // Filename only (e.g. "Class_1_Prompt_Engineering-v2.pptx") without full web link
+            btn.href = 'javascript:void(0)';
+            btn.title = 'Google Drive link missing in Google Sheet';
+            btn.style.cursor = 'pointer';
+            btn.onclick = function(e) {
+              e.preventDefault();
+              alert(
+                '⚠️ Google Drive Link Required:\n\n' +
+                'The link in Google Sheet is currently set to the file name:\n"' + url + '"\ninstead of the full Google Drive share link.\n\n' +
+                'How to fix in Google Sheet:\n' +
+                '1. Go to Google Drive, right-click your file -> Share -> Copy link.\n' +
+                '2. Open your Google Sheet ("Lessons" tab).\n' +
+                '3. Paste the full link (starting with https://drive.google.com/...) into the pdf_1 column.'
+              );
+            };
+          }
           pdfContainer.appendChild(btn);
         });
       }

@@ -7,12 +7,12 @@ export const SCHEMA = {
 };
 export const PLANS = {
   'gita-lifetime': {course:'gita', name:'Bhagavad Gita Foundation Course (Lifetime)', price:108, validity:'lifetime', validityDays:0, validityLabel:'Lifetime Access'},
-  'ai-3m': {course:'ai', name:'Practical AI Course (3 Months)', price:108, validity:'3_months', validityDays:90, validityLabel:'3 Months Access'},
+  'ai-3m': {course:'ai', name:'Practical AI Course (3 Months)', price:110, validity:'3_months', validityDays:90, validityLabel:'3 Months Access'},
   'ai-1y': {course:'ai', name:'Practical AI Course (1 Year)', price:500, validity:'1_year', validityDays:365, validityLabel:'1 Year Access'},
   'ai-lifetime': {course:'ai', name:'Practical AI Course (Lifetime)', price:1080, validity:'lifetime', validityDays:0, validityLabel:'Lifetime Access'},
   // Backwards compatibility for earlier links
   'gita-complete': {course:'gita', name:'Bhagavad Gita Foundation Course', price:108, validity:'lifetime', validityDays:0, validityLabel:'Lifetime Access'},
-  'ai-live': {course:'ai', name:'AI Live Classes (3 Months)', price:108, validity:'3_months', validityDays:90, validityLabel:'3 Months Access'},
+  'ai-live': {course:'ai', name:'AI Live Classes (3 Months)', price:110, validity:'3_months', validityDays:90, validityLabel:'3 Months Access'},
   'ai-complete': {course:'ai', name:'AI Live + Recorded Course (Lifetime)', price:1080, validity:'lifetime', validityDays:0, validityLabel:'Lifetime Access'}
 };
 export function validate(input, now = new Date()) {
