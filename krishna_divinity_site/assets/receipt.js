@@ -58,6 +58,16 @@ if (!receipt || !/^REG-[\w-]+$/.test(receipt.registrationId) || !names[receipt.p
   if (classroomEnterBtn) {
     classroomEnterBtn.href = `classroom.html?course=${targetCourse}`;
   }
+  const telegramBtn = document.querySelector('#telegram-join-btn');
+  if (telegramBtn) {
+    if (isAi) {
+      telegramBtn.href = 'https://t.me/+ZlaykICRsNswZDI9';
+      telegramBtn.textContent = '✈ Join Paid AI Batch Group (Telegram)';
+    } else {
+      telegramBtn.href = 'https://t.me/+aBgI6ELFZSI4Mzdl';
+      telegramBtn.textContent = '✈ Join Paid Gita Batch Group (Telegram)';
+    }
+  }
 
   if (receipt.status === 'confirmed') {
     showPaymentSuccess(receipt.paymentId || 'Verified');

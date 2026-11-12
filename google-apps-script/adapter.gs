@@ -247,13 +247,16 @@ function sendConfirmationEmail_(student, reg, batch, payment) {
   var amountPaid = payment.amount_inr || planDetails.price || 108;
   var paymentId = payment.provider_payment_id || '';
   var regRef = reg.registration_id || '';
-  var telegramGroupLink = 'https://t.me/+zrMP1VqfFBQzNjE1';
-  var waGroupLink = 'https://chat.whatsapp.com/HS3jV1CPnwZ8O8yuKcmyR7';
+
+  var isAiCourse = (reg.course === 'ai' || (reg.plan && String(reg.plan).toLowerCase().indexOf('ai') === 0));
+  var paidTelegramGroupLink = isAiCourse ? 'https://t.me/+ZlaykICRsNswZDI9' : 'https://t.me/+aBgI6ELFZSI4Mzdl';
+  var paidGroupName = isAiCourse ? 'Paid AI Batch Group' : 'Paid Gita Batch Group';
+
   var portalLink = 'https://krishnadivinity.in/portal.html';
   var supportNo = '+917356052212';
   var waSupportLink = 'https://wa.me/917356052212';
 
-  var subject = '🌸 Enrollment Confirmed: ' + courseName + ' | Krishna Divinity';
+  var subject = '🌸 Enrollment Confirmed: ' + courseName + ' (' + paidGroupName + ' Invite Inside) | Krishna Divinity';
 
   var htmlBody = '<!DOCTYPE html>'
     + '<html>'
@@ -287,9 +290,9 @@ function sendConfirmationEmail_(student, reg, batch, payment) {
     + '      <a href="' + portalLink + '" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;padding:12px 26px;border-radius:6px;font-weight:600;font-size:15px;box-shadow:0 2px 4px rgba(37,99,235,0.3);">▶ Open Student Portal</a>'
     + '    </div>'
     + '    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:20px;margin:20px 0;text-align:center;">'
-    + '      <h3 style="margin:0 0 8px;color:#166534;font-size:16px;">📲 Join Our Official Telegram Supergroup</h3>'
-    + '      <p style="margin:0 0 14px;font-size:14px;color:#15803d;">Live Zoom class links, reminders, and Q&A are shared in the Telegram community.</p>'
-    + '      <a href="' + telegramGroupLink + '" style="display:inline-block;background:#0284c7;color:#ffffff;text-decoration:none;padding:12px 26px;border-radius:6px;font-weight:600;font-size:15px;box-shadow:0 2px 4px rgba(2,132,199,0.3);">✈ Join Telegram Community</a>'
+    + '      <h3 style="margin:0 0 8px;color:#166534;font-size:16px;">📲 Join Your ' + paidGroupName + '</h3>'
+    + '      <p style="margin:0 0 14px;font-size:14px;color:#15803d;">Live Zoom class links, reminders, updates, and Q&A are shared in this private paid community.</p>'
+    + '      <a href="' + paidTelegramGroupLink + '" style="display:inline-block;background:#0284c7;color:#ffffff;text-decoration:none;padding:12px 26px;border-radius:6px;font-weight:600;font-size:15px;box-shadow:0 2px 4px rgba(2,132,199,0.3);">✈ Join ' + paidGroupName + ' (Telegram)</a>'
     + '    </div>'
     + '    <div style="margin-top:24px;border-top:1px solid #e5e7eb;padding-top:16px;font-size:14px;color:#6b7280;">'
     + '      <p style="margin:0 0 8px;"><strong>📞 Need Help or Batch Transfer?</strong></p>'
