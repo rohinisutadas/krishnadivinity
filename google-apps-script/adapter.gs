@@ -164,6 +164,28 @@ function doPost(e) {
       return output_({ok:false, error:'missing_batches_sheet'});
     }
 
+    if (payload.action === 'setupWhatsAppColumn') {
+      var overviewSheet = book.getSheetByName('Payment Overview');
+      if (!overviewSheet) return output_({ok:false, error:'missing_overview_sheet'});
+      
+      overviewSheet.getRange(1, 15).setValue('1-Click WhatsApp Invite')
+        .setFontWeight('bold')
+        .setBackground('#dcfce7')
+        .setFontColor('#166534');
+      overviewSheet.setColumnWidth(15, 230);
+
+      var lastRow = overviewSheet.getLastRow();
+      if (lastRow >= 2) {
+        var formulas = [];
+        for (var row = 2; row <= lastRow; row++) {
+          var f = '=IF(ISBLANK(F' + row + '), "", HYPERLINK("https://wa.me/" & SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(F' + row + ', "+", ""), " ", ""), "-", ""), "(", "") & "?text=" & ENCODEURL("Hare Krishna " & D' + row + ' & " Ji! Thank you for paying for " & G' + row + ' & ". Join our paid link: " & IF(ISNUMBER(SEARCH("AI", G' + row + ')), "https://t.me/+ZlaykICRsNswZDI9", "https://t.me/+aBgI6ELFZSI4Mzdl")), "📲 Send Invite to " & D' + row + '))';
+          formulas.push([f]);
+        }
+        overviewSheet.getRange(2, 15, formulas.length, 1).setFormulas(formulas);
+      }
+      return output_({ok:true, updated:true, rows:lastRow - 1});
+    }
+
     var validated = validate(Object.assign({},payload.registration,{consent:true}));
     if (Object.keys(validated.errors).length) return output_({ok:false});
     var mutation = registrationMutation(validated.data,db,new Date(),function(){return Utilities.getUuid();});
@@ -518,5 +540,38 @@ function updateBatchDates() {
   sheet.getRange(2, 3).setValue('2026-11-22T18:00:00+05:30');
   sheet.getRange(3, 3).setValue('2026-11-22T18:00:00+05:30');
   Logger.log('Batches updated successfully to 2026-11-22T18:00:00+05:30');
+}
+
+/**
+ * One-click helper function to automatically create Column O in 'Payment Overview'
+ * with the 1-click WhatsApp Invite links for all paid students.
+ * Select 'setupWhatsAppInviteColumn' in Apps Script editor and click 'Run'.
+ */
+function setupWhatsAppInviteColumn() {
+  var settings = PropertiesService.getScriptProperties();
+  var sheetId = (settings && settings.getProperty('SPREADSHEET_ID')) || '1PgupS-wlHJcqDAsP8HskS9YMysHL2Mqf8yyy2QAK3dA';
+  var book = SpreadsheetApp.openById(sheetId);
+  var overviewSheet = book.getSheetByName('Payment Overview');
+  if (!overviewSheet) {
+    Logger.log('Payment Overview sheet not found');
+    return;
+  }
+  
+  overviewSheet.getRange(1, 15).setValue('1-Click WhatsApp Invite')
+    .setFontWeight('bold')
+    .setBackground('#dcfce7')
+    .setFontColor('#166534');
+  overviewSheet.setColumnWidth(15, 230);
+
+  var lastRow = overviewSheet.getLastRow();
+  if (lastRow >= 2) {
+    var formulas = [];
+    for (var row = 2; row <= lastRow; row++) {
+      var f = '=IF(ISBLANK(F' + row + '), "", HYPERLINK("https://wa.me/" & SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(F' + row + ', "+", ""), " ", ""), "-", ""), "(", "") & "?text=" & ENCODEURL("Hare Krishna " & D' + row + ' & " Ji! Thank you for paying for " & G' + row + ' & ". Join our paid link: " & IF(ISNUMBER(SEARCH("AI", G' + row + ')), "https://t.me/+ZlaykICRsNswZDI9", "https://t.me/+aBgI6ELFZSI4Mzdl")), "📲 Send Invite to " & D' + row + '))';
+      formulas.push([f]);
+    }
+    overviewSheet.getRange(2, 15, formulas.length, 1).setFormulas(formulas);
+  }
+  Logger.log('Column O populated successfully for ' + (lastRow - 1) + ' rows!');
 }
 
