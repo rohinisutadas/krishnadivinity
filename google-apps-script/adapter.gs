@@ -188,6 +188,11 @@ function doPost(e) {
       return output_({ok:true, updated:true});
     }
 
+    if (payload.action === 'cleanDuplicateOfflinePayment') {
+      cleanDuplicateOfflinePayment();
+      return output_({ok:true, cleaned:true});
+    }
+
     var validated = validate(Object.assign({},payload.registration,{consent:true}));
     if (Object.keys(validated.errors).length) return output_({ok:false});
     var mutation = registrationMutation(validated.data,db,new Date(),function(){return Utilities.getUuid();});
@@ -583,5 +588,70 @@ function setupWhatsAppInviteColumn() {
   overviewSheet.setColumnWidth(15, 240);
 
   Logger.log('Column O updated with dynamic self-expanding ARRAYFORMULA successfully!');
+}
+
+/**
+ * One-click helper function to clean up the duplicate offline payment for Padamata Sri Ram.
+ * Removes the manual OFFLINE_UPI-1793709002414 records across Payments, Payment Overview,
+ * Registrations, and Students, preserving the genuine Razorpay transaction (pay_Ttgnflc8oxUTFf).
+ */
+function cleanDuplicateOfflinePayment() {
+  var settings = PropertiesService.getScriptProperties();
+  var sheetId = (settings && settings.getProperty('SPREADSHEET_ID')) || '1PgupS-wlHJcqDAsP8HskS9YMysHL2Mqf8yyy2QAK3dA';
+  var book = SpreadsheetApp.openById(sheetId);
+
+  var targetPaymentId = 'OFFLINE_UPI-1793709002414';
+  var targetRegId = 'REG-b5040084-81ac-4109-8c3f-4b23e1c3e729';
+  var targetStudentId = 'ST-2395c990-3344-44af-b68f-a4a957858343';
+
+  // 1. Clean Payments sheet
+  var paySheet = book.getSheetByName('Payments');
+  if (paySheet) {
+    var pData = paySheet.getDataRange().getValues();
+    for (var i = pData.length - 1; i >= 1; i--) {
+      if (pData[i][3] === targetPaymentId || pData[i][0] === 'PAY-72eca641-e4d0-4938-a866-d97fc8e7e7a2') {
+        paySheet.deleteRow(i + 1);
+        Logger.log('Deleted duplicate row from Payments: ' + (i + 1));
+      }
+    }
+  }
+
+  // 2. Clean Payment Overview sheet
+  var overviewSheet = book.getSheetByName('Payment Overview');
+  if (overviewSheet) {
+    var oData = overviewSheet.getDataRange().getValues();
+    for (var j = oData.length - 1; j >= 1; j--) {
+      if (oData[j][2] === targetPaymentId || oData[j][1] === 'PAY-72eca641-e4d0-4938-a866-d97fc8e7e7a2') {
+        overviewSheet.deleteRow(j + 1);
+        Logger.log('Deleted duplicate row from Payment Overview: ' + (j + 1));
+      }
+    }
+  }
+
+  // 3. Clean Registrations sheet
+  var regSheet = book.getSheetByName('Registrations');
+  if (regSheet) {
+    var rData = regSheet.getDataRange().getValues();
+    for (var k = rData.length - 1; k >= 1; k--) {
+      if (rData[k][0] === targetRegId) {
+        regSheet.deleteRow(k + 1);
+        Logger.log('Deleted duplicate row from Registrations: ' + (k + 1));
+      }
+    }
+  }
+
+  // 4. Clean Students sheet
+  var stuSheet = book.getSheetByName('Students');
+  if (stuSheet) {
+    var sData = stuSheet.getDataRange().getValues();
+    for (var m = sData.length - 1; m >= 1; m--) {
+      if (sData[m][0] === targetStudentId) {
+        stuSheet.deleteRow(m + 1);
+        Logger.log('Deleted duplicate row from Students: ' + (m + 1));
+      }
+    }
+  }
+
+  Logger.log('Duplicate offline payment cleaned up successfully!');
 }
 
