@@ -76,7 +76,25 @@ function doPost(e) {
     var text = e && e.postData && e.postData.contents;
     if (!text || text.length>12000) return output_({ok:false});
     var payload = JSON.parse(text);
-    if (!secret || secret.length<32 || payload.secret!==secret) return output_({ok:false});
+    var providedSecret = (payload && payload.secret) || (e && e.parameter && e.parameter.secret);
+    if (!secret || secret.length<32 || providedSecret!==secret) return output_({ok:false});
+
+    // Handle Razorpay Webhook Event: payment.captured or order.paid
+    if (payload.event === 'payment.captured' || payload.event === 'order.paid') {
+      var pEntity = (payload.payload && payload.payload.payment && payload.payload.payment.entity) || {};
+      var rId = pEntity.notes && (pEntity.notes.registration_id || pEntity.notes.registrationId);
+      if (rId && pEntity.id) {
+        payload.payment = {
+          registration_id: rId,
+          provider_order_id: pEntity.order_id || '',
+          provider_payment_id: pEntity.id,
+          amount_inr: pEntity.amount ? Math.round(pEntity.amount / 100) : 108,
+          currency: pEntity.currency || 'INR',
+          method: pEntity.method || 'razorpay',
+          status: 'captured'
+        };
+      }
+    }
 
     if (!lock.tryLock(10000)) return output_({ok:false,error:'busy'});
     var book = SpreadsheetApp.openById(settings.getProperty('SPREADSHEET_ID'));
@@ -133,6 +151,17 @@ function doPost(e) {
       }
 
       return output_({ok:true,confirmed:true,paymentReference:payMutation.paymentReference});
+    }
+
+    if (payload.action === 'updateBatchDates') {
+      var batchSheet = book.getSheetByName('Batches');
+      if (batchSheet) {
+        var newDate = payload.date || '2026-11-22T18:00:00+05:30';
+        batchSheet.getRange(2, 3).setValue(newDate);
+        batchSheet.getRange(3, 3).setValue(newDate);
+        return output_({ok:true, updated:true, date:newDate});
+      }
+      return output_({ok:false, error:'missing_batches_sheet'});
     }
 
     var validated = validate(Object.assign({},payload.registration,{consent:true}));
@@ -376,5 +405,115 @@ function testRazorpayOrder() {
   } else {
     Logger.log('FAILED with status ' + code + ': ' + text);
   }
+}
+
+/**
+ * Automatically reconciles and syncs the last 50 payments from Razorpay into Google Sheets.
+ * Can be run manually from Apps Script Editor or set to trigger automatically every 15 minutes.
+ */
+function syncRecentRazorpayPayments() {
+  var settings = PropertiesService.getScriptProperties();
+  var keyId = (settings && settings.getProperty('RAZORPAY_KEY_ID')) || 'rzp_live_TqtLjeTj9XYzsx';
+  var keySecret = (settings && settings.getProperty('RAZORPAY_KEY_SECRET')) || 'waim48eDyWWgSau61OpX7vKz';
+  var sheetId = (settings && settings.getProperty('SPREADSHEET_ID')) || '1PgupS-wlHJcqDAsP8HskS9YMysHL2Mqf8yyy2QAK3dA';
+  
+  var book = SpreadsheetApp.openById(sheetId);
+  var paySheet = book.getSheetByName('Payments');
+  var regSheet = book.getSheetByName('Registrations');
+  if (!paySheet || !regSheet) return;
+
+  var payValues = paySheet.getDataRange().getDisplayValues();
+  var regValues = regSheet.getDataRange().getDisplayValues();
+
+  var existingPayments = {};
+  for (var i = 1; i < payValues.length; i++) {
+    var pId = payValues[i][3]; // provider_payment_id
+    if (pId) existingPayments[pId] = true;
+  }
+
+  var authHeader = 'Basic ' + Utilities.base64Encode(keyId + ':' + keySecret);
+  var res = UrlFetchApp.fetch('https://api.razorpay.com/v1/payments?count=50', {
+    headers: { 'Authorization': authHeader },
+    muteHttpExceptions: true
+  });
+  if (res.getResponseCode() !== 200) {
+    Logger.log('Razorpay fetch failed with status ' + res.getResponseCode());
+    return;
+  }
+  var data = JSON.parse(res.getContentText());
+  var items = (data && data.items) || [];
+
+  var syncedCount = 0;
+  for (var k = 0; k < items.length; k++) {
+    var p = items[k];
+    if (p.status !== 'captured' || existingPayments[p.id]) continue;
+    var regId = p.notes && (p.notes.registration_id || p.notes.registrationId);
+    if (!regId) continue;
+
+    // Find registration row in sheet
+    var regRowIdx = -1;
+    for (var r = 1; r < regValues.length; r++) {
+      if (regValues[r][0] === regId) {
+        regRowIdx = r;
+        break;
+      }
+    }
+    if (regRowIdx === -1) continue;
+
+    // Confirm registration
+    regSheet.getRange(regRowIdx + 1, 9).setValue('confirmed');
+    regSheet.getRange(regRowIdx + 1, 11).setValue('active');
+
+    // Add payment record
+    var paymentRef = 'PAY-' + Utilities.getUuid();
+    var amt = p.amount ? Math.round(p.amount / 100) : 108;
+    paySheet.appendRow([
+      paymentRef,
+      regId,
+      p.order_id || '',
+      p.id,
+      amt,
+      'INR',
+      'captured',
+      new Date(p.created_at * 1000).toISOString(),
+      '',
+      ''
+    ]);
+    existingPayments[p.id] = true;
+    syncedCount++;
+  }
+  Logger.log('Sync completed. New payments synced: ' + syncedCount);
+}
+
+/**
+ * Sets up a background time-driven trigger to run syncRecentRazorpayPayments every 15 minutes.
+ * Select 'setupAutomaticSyncTrigger' in Apps Script editor and click 'Run'.
+ */
+function setupAutomaticSyncTrigger() {
+  var triggers = ScriptApp.getProjectTriggers();
+  for (var i = 0; i < triggers.length; i++) {
+    if (triggers[i].getHandlerFunction() === 'syncRecentRazorpayPayments') {
+      ScriptApp.deleteTrigger(triggers[i]);
+    }
+  }
+  ScriptApp.newTrigger('syncRecentRazorpayPayments')
+    .timeBased()
+    .everyMinutes(15)
+    .create();
+  Logger.log('Automatic 15-minute Razorpay Sync Trigger created successfully!');
+}
+
+/**
+ * Updates batch start dates to future dates so students are not placed on the waiting list.
+ */
+function updateBatchDates() {
+  var settings = PropertiesService.getScriptProperties();
+  var sheetId = (settings && settings.getProperty('SPREADSHEET_ID')) || '1PgupS-wlHJcqDAsP8HskS9YMysHL2Mqf8yyy2QAK3dA';
+  var book = SpreadsheetApp.openById(sheetId);
+  var sheet = book.getSheetByName('Batches');
+  if (!sheet) return;
+  sheet.getRange(2, 3).setValue('2026-11-22T18:00:00+05:30');
+  sheet.getRange(3, 3).setValue('2026-11-22T18:00:00+05:30');
+  Logger.log('Batches updated successfully to 2026-11-22T18:00:00+05:30');
 }
 
