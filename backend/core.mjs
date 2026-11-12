@@ -94,7 +94,7 @@ export function paymentMutation(data, db, now, id) {
     refunded_at: ''
   };
   reg.status = 'confirmed';
-  if (reg.recordings_access === 'pending') reg.recordings_access = 'active';
+  reg.recordings_access = 'active'; // Every student who pays gets active recordings access!
   return {
     rows: [{ sheet: 'Payments', record: paymentRecord }],
     updateRegistration: { registration_id: reg.registration_id, status: 'confirmed', recordings_access: reg.recordings_access },

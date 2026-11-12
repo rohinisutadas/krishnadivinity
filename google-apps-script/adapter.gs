@@ -655,3 +655,52 @@ function cleanDuplicateOfflinePayment() {
   Logger.log('Duplicate offline payment cleaned up successfully!');
 }
 
+/**
+ * Reconciles all paid students across the sheet so that:
+ * 1. Every student who paid (in Payments sheet) has:
+ *    - status = 'confirmed' (Column 9)
+ *    - recordings_access = 'active' (Column 11)
+ * 2. Cleans up the duplicate Row 15 offline payment for Padamata Sri Ram.
+ */
+function reconcileAllPaidStudentsRecordingsAccess() {
+  var settings = PropertiesService.getScriptProperties();
+  var sheetId = (settings && settings.getProperty('SPREADSHEET_ID')) || '1PgupS-wlHJcqDAsP8HskS9YMysHL2Mqf8yyy2QAK3dA';
+  var book = SpreadsheetApp.openById(sheetId);
+  var regSheet = book.getSheetByName('Registrations');
+  var paySheet = book.getSheetByName('Payments');
+  var overviewSheet = book.getSheetByName('Payment Overview');
+  var stuSheet = book.getSheetByName('Students');
+
+  // 1. Clean duplicate offline payment for Padamata Sri Ram
+  cleanDuplicateOfflinePayment();
+
+  // 2. Build set of all confirmed captured payments
+  var freshPayData = paySheet.getDataRange().getValues();
+  var paidRegIds = {};
+  for (var k = 1; k < freshPayData.length; k++) {
+    var regId = freshPayData[k][1];
+    var status = freshPayData[k][6];
+    if (status === 'captured' && regId) {
+      paidRegIds[regId] = true;
+    }
+  }
+
+  // 3. Update all paid registrations to confirmed & active recordings access
+  var regData = regSheet.getDataRange().getValues();
+  var count = 0;
+  for (var m = 1; m < regData.length; m++) {
+    var rId = regData[m][0];
+    if (paidRegIds[rId]) {
+      if (regData[m][8] !== 'confirmed') {
+        regSheet.getRange(m + 1, 9).setValue('confirmed');
+      }
+      if (regData[m][10] !== 'active') {
+        regSheet.getRange(m + 1, 11).setValue('active');
+        count++;
+      }
+    }
+  }
+
+  Logger.log('Successfully reconciled ' + count + ' paid students! All paid students now have active recording access.');
+}
+
