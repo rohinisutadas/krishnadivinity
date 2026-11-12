@@ -591,116 +591,102 @@ function setupWhatsAppInviteColumn() {
 }
 
 /**
- * One-click helper function to clean up the duplicate offline payment for Padamata Sri Ram.
- * Removes the manual OFFLINE_UPI-1793709002414 records across Payments, Payment Overview,
- * Registrations, and Students, preserving the genuine Razorpay transaction (pay_Ttgnflc8oxUTFf).
+ * MASTER FIX FUNCTION:
+ * Run this ONCE to fix all 3 issues in 1 click:
+ * 1. Wipes the 900+ ghost "Send Invite to" empty rows from Column O and installs the clean ARRAYFORMULA.
+ * 2. Removes the duplicate Row 15 offline payment for Padamata Sri Ram.
+ * 3. Grants 'active' recording access to all paid students in the Registrations sheet.
  */
-function cleanDuplicateOfflinePayment() {
+function fixEverythingNow() {
   var settings = PropertiesService.getScriptProperties();
   var sheetId = (settings && settings.getProperty('SPREADSHEET_ID')) || '1PgupS-wlHJcqDAsP8HskS9YMysHL2Mqf8yyy2QAK3dA';
   var book = SpreadsheetApp.openById(sheetId);
-
-  var targetPaymentId = 'OFFLINE_UPI-1793709002414';
-  var targetRegId = 'REG-b5040084-81ac-4109-8c3f-4b23e1c3e729';
-  var targetStudentId = 'ST-2395c990-3344-44af-b68f-a4a957858343';
-
-  // 1. Clean Payments sheet
-  var paySheet = book.getSheetByName('Payments');
-  if (paySheet) {
-    var pData = paySheet.getDataRange().getValues();
-    for (var i = pData.length - 1; i >= 1; i--) {
-      if (pData[i][3] === targetPaymentId || pData[i][0] === 'PAY-72eca641-e4d0-4938-a866-d97fc8e7e7a2') {
-        paySheet.deleteRow(i + 1);
-        Logger.log('Deleted duplicate row from Payments: ' + (i + 1));
-      }
-    }
-  }
-
-  // 2. Clean Payment Overview sheet
   var overviewSheet = book.getSheetByName('Payment Overview');
+  var paySheet = book.getSheetByName('Payments');
+  var regSheet = book.getSheetByName('Registrations');
+
+  // --- 1. CLEAN COLUMN O & REMOVE GHOST ROWS IN PAYMENT OVERVIEW ---
   if (overviewSheet) {
+    // Clear all formulas and contents down entire Column O
+    overviewSheet.getRange('O1:O').clearContent().clearFormat();
+
+    // Remove any duplicate Row 15 before trimming rows
+    var targetPaymentId = 'OFFLINE_UPI-1793709002414';
     var oData = overviewSheet.getDataRange().getValues();
     for (var j = oData.length - 1; j >= 1; j--) {
       if (oData[j][2] === targetPaymentId || oData[j][1] === 'PAY-72eca641-e4d0-4938-a866-d97fc8e7e7a2') {
         overviewSheet.deleteRow(j + 1);
-        Logger.log('Deleted duplicate row from Payment Overview: ' + (j + 1));
+        Logger.log('Deleted duplicate Row ' + (j + 1) + ' from Payment Overview');
+      }
+    }
+
+    // Trim excess empty rows down to row 35
+    var maxRows = overviewSheet.getMaxRows();
+    if (maxRows > 35) {
+      overviewSheet.deleteRows(36, maxRows - 35);
+      Logger.log('Trimmed empty ghost rows: deleted ' + (maxRows - 35) + ' rows.');
+    }
+
+    // Set ONE single self-expanding ARRAYFORMULA in cell O1
+    var arrayFormula = '={"1-Click WhatsApp Invite"; ARRAYFORMULA('
+      + 'IF((D2:D="") + (F2:F=""), "", '
+      + 'HYPERLINK('
+      + '"https://wa.me/" & SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(F2:F, "+", ""), " ", ""), "-", ""), "(", "") & "?text=" '
+      + '& "Hare%20Krishna%20" & SUBSTITUTE(TRIM(D2:D), " ", "%20") & "%20Ji!%20Thank%20you%20for%20paying%20for%20" & SUBSTITUTE(TRIM(G2:G), " ", "%20") & ".%20Join%20our%20paid%20link:%20" '
+      + '& IF(REGEXMATCH(G2:G, "(?i)ai"), "https://t.me/+ZlaykICRsNswZDI9", "https://t.me/+aBgI6ELFZSI4Mzdl"), '
+      + '"📲 Send Invite to " & TRIM(D2:D)'
+      + ')'
+      + '))}';
+
+    overviewSheet.getRange('O1').setFormula(arrayFormula);
+    overviewSheet.getRange('O1')
+      .setFontWeight('bold')
+      .setBackground('#dcfce7')
+      .setFontColor('#166534');
+    overviewSheet.setColumnWidth(15, 240);
+    Logger.log('Column O reset with dynamic ARRAYFORMULA successfully!');
+  }
+
+  // --- 2. CLEAN PAYMENTS SHEET DUPLICATE (ROW 15) ---
+  if (paySheet) {
+    var pData = paySheet.getDataRange().getValues();
+    for (var i = pData.length - 1; i >= 1; i--) {
+      if (pData[i][3] === 'OFFLINE_UPI-1793709002414' || pData[i][0] === 'PAY-72eca641-e4d0-4938-a866-d97fc8e7e7a2') {
+        paySheet.deleteRow(i + 1);
+        Logger.log('Deleted duplicate Row ' + (i + 1) + ' from Payments');
       }
     }
   }
 
-  // 3. Clean Registrations sheet
-  var regSheet = book.getSheetByName('Registrations');
-  if (regSheet) {
-    var rData = regSheet.getDataRange().getValues();
-    for (var k = rData.length - 1; k >= 1; k--) {
-      if (rData[k][0] === targetRegId) {
-        regSheet.deleteRow(k + 1);
-        Logger.log('Deleted duplicate row from Registrations: ' + (k + 1));
+  // --- 3. RECONCILE RECORDINGS ACCESS IN REGISTRATIONS SHEET ---
+  if (regSheet && paySheet) {
+    var freshPayData = paySheet.getDataRange().getValues();
+    var paidRegIds = {};
+    for (var k = 1; k < freshPayData.length; k++) {
+      var regId = freshPayData[k][1];
+      var status = freshPayData[k][6];
+      if (status === 'captured' && regId) {
+        paidRegIds[regId] = true;
       }
     }
-  }
 
-  // 4. Clean Students sheet
-  var stuSheet = book.getSheetByName('Students');
-  if (stuSheet) {
-    var sData = stuSheet.getDataRange().getValues();
-    for (var m = sData.length - 1; m >= 1; m--) {
-      if (sData[m][0] === targetStudentId) {
-        stuSheet.deleteRow(m + 1);
-        Logger.log('Deleted duplicate row from Students: ' + (m + 1));
+    var regData = regSheet.getDataRange().getValues();
+    var recCount = 0;
+    for (var m = 1; m < regData.length; m++) {
+      var rId = regData[m][0];
+      if (paidRegIds[rId]) {
+        if (regData[m][8] !== 'confirmed') {
+          regSheet.getRange(m + 1, 9).setValue('confirmed');
+        }
+        if (regData[m][10] !== 'active') {
+          regSheet.getRange(m + 1, 11).setValue('active');
+          recCount++;
+        }
       }
     }
+    Logger.log('Reconciled ' + recCount + ' paid students to active recordings access!');
   }
 
-  Logger.log('Duplicate offline payment cleaned up successfully!');
-}
-
-/**
- * Reconciles all paid students across the sheet so that:
- * 1. Every student who paid (in Payments sheet) has:
- *    - status = 'confirmed' (Column 9)
- *    - recordings_access = 'active' (Column 11)
- * 2. Cleans up the duplicate Row 15 offline payment for Padamata Sri Ram.
- */
-function reconcileAllPaidStudentsRecordingsAccess() {
-  var settings = PropertiesService.getScriptProperties();
-  var sheetId = (settings && settings.getProperty('SPREADSHEET_ID')) || '1PgupS-wlHJcqDAsP8HskS9YMysHL2Mqf8yyy2QAK3dA';
-  var book = SpreadsheetApp.openById(sheetId);
-  var regSheet = book.getSheetByName('Registrations');
-  var paySheet = book.getSheetByName('Payments');
-  var overviewSheet = book.getSheetByName('Payment Overview');
-  var stuSheet = book.getSheetByName('Students');
-
-  // 1. Clean duplicate offline payment for Padamata Sri Ram
-  cleanDuplicateOfflinePayment();
-
-  // 2. Build set of all confirmed captured payments
-  var freshPayData = paySheet.getDataRange().getValues();
-  var paidRegIds = {};
-  for (var k = 1; k < freshPayData.length; k++) {
-    var regId = freshPayData[k][1];
-    var status = freshPayData[k][6];
-    if (status === 'captured' && regId) {
-      paidRegIds[regId] = true;
-    }
-  }
-
-  // 3. Update all paid registrations to confirmed & active recordings access
-  var regData = regSheet.getDataRange().getValues();
-  var count = 0;
-  for (var m = 1; m < regData.length; m++) {
-    var rId = regData[m][0];
-    if (paidRegIds[rId]) {
-      if (regData[m][8] !== 'confirmed') {
-        regSheet.getRange(m + 1, 9).setValue('confirmed');
-      }
-      if (regData[m][10] !== 'active') {
-        regSheet.getRange(m + 1, 11).setValue('active');
-        count++;
-      }
-    }
-  }
-
-  Logger.log('Successfully reconciled ' + count + ' paid students! All paid students now have active recording access.');
+  Logger.log('🎉 ALL TASKS COMPLETED SUCCESSFULLY!');
 }
 
