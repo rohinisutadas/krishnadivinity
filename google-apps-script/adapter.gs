@@ -168,22 +168,24 @@ function doPost(e) {
       var overviewSheet = book.getSheetByName('Payment Overview');
       if (!overviewSheet) return output_({ok:false, error:'missing_overview_sheet'});
       
-      overviewSheet.getRange(1, 15).setValue('1-Click WhatsApp Invite')
+      overviewSheet.getRange('O1:O').clearContent();
+      var arrayFormula = '={"1-Click WhatsApp Invite"; ARRAYFORMULA('
+        + 'IF((D2:D="") + (F2:F=""), "", '
+        + 'HYPERLINK('
+        + '"https://wa.me/" & SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(F2:F, "+", ""), " ", ""), "-", ""), "(", "") & "?text=" '
+        + '& "Hare%20Krishna%20" & SUBSTITUTE(TRIM(D2:D), " ", "%20") & "%20Ji!%20Thank%20you%20for%20paying%20for%20" & SUBSTITUTE(TRIM(G2:G), " ", "%20") & ".%20Join%20our%20paid%20link:%20" '
+        + '& IF(REGEXMATCH(G2:G, "(?i)ai"), "https://t.me/+ZlaykICRsNswZDI9", "https://t.me/+aBgI6ELFZSI4Mzdl"), '
+        + '"📲 Send Invite to " & TRIM(D2:D)'
+        + ')'
+        + '))}';
+
+      overviewSheet.getRange('O1').setFormula(arrayFormula);
+      overviewSheet.getRange('O1')
         .setFontWeight('bold')
         .setBackground('#dcfce7')
         .setFontColor('#166534');
-      overviewSheet.setColumnWidth(15, 230);
-
-      var lastRow = overviewSheet.getLastRow();
-      if (lastRow >= 2) {
-        var formulas = [];
-        for (var row = 2; row <= lastRow; row++) {
-          var f = '=IF(ISBLANK(F' + row + '), "", HYPERLINK("https://wa.me/" & SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(F' + row + ', "+", ""), " ", ""), "-", ""), "(", "") & "?text=" & ENCODEURL("Hare Krishna " & D' + row + ' & " Ji! Thank you for paying for " & G' + row + ' & ". Join our paid link: " & IF(ISNUMBER(SEARCH("AI", G' + row + ')), "https://t.me/+ZlaykICRsNswZDI9", "https://t.me/+aBgI6ELFZSI4Mzdl")), "📲 Send Invite to " & D' + row + '))';
-          formulas.push([f]);
-        }
-        overviewSheet.getRange(2, 15, formulas.length, 1).setFormulas(formulas);
-      }
-      return output_({ok:true, updated:true, rows:lastRow - 1});
+      overviewSheet.setColumnWidth(15, 240);
+      return output_({ok:true, updated:true});
     }
 
     var validated = validate(Object.assign({},payload.registration,{consent:true}));
@@ -557,21 +559,29 @@ function setupWhatsAppInviteColumn() {
     return;
   }
   
-  overviewSheet.getRange(1, 15).setValue('1-Click WhatsApp Invite')
+  // Clear any existing contents or excess formulas down Column O
+  overviewSheet.getRange('O1:O').clearContent();
+
+  // Set the self-expanding ARRAYFORMULA in O1:
+  // Automatically creates the link only when Name and Phone exist,
+  // leaves empty rows clean, and auto-generates links for every new row!
+  var arrayFormula = '={"1-Click WhatsApp Invite"; ARRAYFORMULA('
+    + 'IF((D2:D="") + (F2:F=""), "", '
+    + 'HYPERLINK('
+    + '"https://wa.me/" & SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(F2:F, "+", ""), " ", ""), "-", ""), "(", "") & "?text=" '
+    + '& "Hare%20Krishna%20" & SUBSTITUTE(TRIM(D2:D), " ", "%20") & "%20Ji!%20Thank%20you%20for%20paying%20for%20" & SUBSTITUTE(TRIM(G2:G), " ", "%20") & ".%20Join%20our%20paid%20link:%20" '
+    + '& IF(REGEXMATCH(G2:G, "(?i)ai"), "https://t.me/+ZlaykICRsNswZDI9", "https://t.me/+aBgI6ELFZSI4Mzdl"), '
+    + '"📲 Send Invite to " & TRIM(D2:D)'
+    + ')'
+    + '))}';
+
+  overviewSheet.getRange('O1').setFormula(arrayFormula);
+  overviewSheet.getRange('O1')
     .setFontWeight('bold')
     .setBackground('#dcfce7')
     .setFontColor('#166534');
-  overviewSheet.setColumnWidth(15, 230);
+  overviewSheet.setColumnWidth(15, 240);
 
-  var lastRow = overviewSheet.getLastRow();
-  if (lastRow >= 2) {
-    var formulas = [];
-    for (var row = 2; row <= lastRow; row++) {
-      var f = '=IF(ISBLANK(F' + row + '), "", HYPERLINK("https://wa.me/" & SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(SUBSTITUTE(F' + row + ', "+", ""), " ", ""), "-", ""), "(", "") & "?text=" & ENCODEURL("Hare Krishna " & D' + row + ' & " Ji! Thank you for paying for " & G' + row + ' & ". Join our paid link: " & IF(ISNUMBER(SEARCH("AI", G' + row + ')), "https://t.me/+ZlaykICRsNswZDI9", "https://t.me/+aBgI6ELFZSI4Mzdl")), "📲 Send Invite to " & D' + row + '))';
-      formulas.push([f]);
-    }
-    overviewSheet.getRange(2, 15, formulas.length, 1).setFormulas(formulas);
-  }
-  Logger.log('Column O populated successfully for ' + (lastRow - 1) + ' rows!');
+  Logger.log('Column O updated with dynamic self-expanding ARRAYFORMULA successfully!');
 }
 
